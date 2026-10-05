@@ -1924,6 +1924,7 @@ function Zf(e) {
       guarantee: l.guarantee || 0,
       played: !1,
       ...(l.event ? { event: l.event } : {}),
+      ...(l.event && l.rd ? { rd: l.rd } : {}),
       ...(e.rival && o.id === e.rival.id ? { rival: !0 } : {}),
     };
   });
@@ -2068,7 +2069,7 @@ function Nn(e, a, t, l) {
         (a.priority === "Development" && e.specialty === "Development" ? 10 : 0) +
         (e.round === 9 ? 20 : 0) +
         (a.ov ? TUNE.ovBonus : 0) +
-        (e.staff ? (e.staff.rec || 0) * 2 + (e.staff.fac || 0) * 1.5 : 0) +
+        (e.staff ? W_staffLv(e, "rec") * 2 + (e.staff.fac || 0) * 1.5 : 0) +
         (W_skill(e, "rec") - 50) * 0.1 +
         prefAdj(e, a) +
         ({ relaxed: 6, hardcore: -6 }[e.diff] || 0) -
@@ -2216,6 +2217,7 @@ function ry(e, a, t) {
 // sf / nf: chance per possession of a foul on a shot (2 free throws) / of a foul away from the shot (free throws only in the bonus)
 // bonus1 / bonus2: team fouls in a half for a one-and-one / two shots (men's college: 7 and 10)
 // timeouts: per team per game; toRun: net run that makes a coach call one; toBoost: shot-chance bonus for 2 possessions after one
+// toCarry: timeouts a team may carry into the second half (men's college rule as remembered, not re-checked online); toLate: seconds left when the trailing coach starts stopping the clock
 // heat: shot-chance change for a fully hot (+) or cold (-) shooter, 0 turns streaks off; mom: shot-chance change at full team momentum
 // shotClock: seconds before a violation; scShift: shot-chance change for a late (24+ s) or quick (10 s or less) possession;
 // closeSecs / blowSecs: clock time left for the close-game and blowout rules; hackSecs: trailing team fouls on purpose inside this
@@ -2228,7 +2230,7 @@ function ry(e, a, t) {
 // netCn: bonus for each team a conference has above 10 (bigger leagues send more teams);
 // netW / netR: weight of win % and of team rating in W_net; netSos / netCs / netQ1 / netQ2: how much the tournament ranking (W_net) credits a hard schedule, a strong conference, and wins over the top (Q1) and next (Q2) quadrant
 // tend: 1 = player tendencies change who shoots/passes/rebounds/steals in ny; 0 = off (the old engine)
-var TUNE = { u: 1, f: 0.003, o2: 0.505, o3: 0.335, d2: 0.505, d3: 0.335, sk: 0.0008, b: 0.2, tend: 1, portal: 1.5, portalShow: 170, withdraw: 0.05, pvisits: 3, ovisits: 5, ovBonus: 8, foulOut: 5, sf: 0.11, nf: 0.216, bonus1: 7, bonus2: 10, timeouts: 4, toRun: 6, toBoost: 0.012, shotClock: 30, heat: 0.07, mom: 0.04, scShift: 0.03, closeSecs: 240, blowSecs: 430, hackSecs: 50, pollStep: 0.3, stagger: 1, rivalry: 0.85, netCr: 46, netCn: 9, netW: 65, netR: 0.45, netSos: 0.5, netCs: 0.45, netQ1: 2, netQ2: 0.6 };
+var TUNE = { u: 1, f: 0.003, o2: 0.505, o3: 0.335, d2: 0.505, d3: 0.335, sk: 0.0008, b: 0.2, tend: 1, portal: 1.5, portalShow: 170, withdraw: 0.05, pvisits: 3, ovisits: 5, ovBonus: 8, foulOut: 5, sf: 0.11, nf: 0.216, bonus1: 7, bonus2: 10, timeouts: 4, toRun: 4, toBoost: 0.012, toCarry: 3, toLate: 180, shotClock: 30, heat: 0.07, mom: 0.04, scShift: 0.03, closeSecs: 240, blowSecs: 430, hackSecs: 50, pollStep: 0.3, stagger: 1, rivalry: 0.85, netCr: 46, netCn: 9, netW: 65, netR: 0.45, netSos: 0.5, netCs: 0.45, netQ1: 2, netQ2: 0.6 };
 
 function ny(e, a, op) {
   let t = uy(e),
@@ -2444,7 +2446,8 @@ function ny(e, a, op) {
     for (let c = 0; c < m; c++) {
       let lp = l.filter((x) => !fo.has(x.id));
       lp.length < 5 && (lp = l);
-      px === hb && (tf = [0, 0]);
+      // halftime: team fouls reset, and at most TUNE.toCarry timeouts carry over (item 28)
+      px === hb && ((tf = [0, 0]), (tos = tos.map((x) => Math.min(x, TUNE.toCarry))));
       waves();
       let us0 = u.reduce((x, y) => x + y.pts, 0),
         p0 = p,
@@ -2618,8 +2621,8 @@ function ny(e, a, op) {
           }
         }
       }
-      // Timeouts. Each coach calls one after an 8-point run by the other side, and the trailing coach calls one late in a
-      // close game after the leader scores. A timeout ends the run and the team that called it plays the next two
+      // Timeouts. Each coach calls one after a TUNE.toRun-point run by the other side, the trailing coach stops the clock late in a
+      // close game after the leader scores, and the rules below (item 28) use up timeouts before the half and in the last minutes. A timeout ends the run and the team that called it plays the next two
       // possessions a little more settled (TUNE.toBoost).
       let gu = u.reduce((x, y) => x + y.pts, 0) - us0,
         go = p - p0,
@@ -2635,22 +2638,30 @@ function ny(e, a, op) {
       bo[1] > 0 && bo[1]--;
       for (let s = 0; s < 2; s++) {
         let hurt = s === 0 ? -rn : rn,
-          lateNeed = late && (s === 0 ? dn < 0 && go > 0 : dn > 0 && gu > 0);
+          trail = s === 0 ? dn < 0 : dn > 0,
+          scoredOn = s === 0 ? go > 0 : gu > 0,
+          // item 28: the trailing coach stops the clock after the other side scores in the last TUNE.toLate seconds (within 10),
+          // the leader sometimes calls one in the last minute to set up a play, and a coach with more than TUNE.toCarry left
+          // uses one late in the first half rather than lose it (only toCarry carry over to the second half)
+          lateNeed = (per > 1 ? lefG <= TUNE.toLate && Math.abs(dn) <= 10 : late) && trail && scoredOn,
+          leadUse = per > 1 && lefG <= 60 && dn !== 0 && Math.abs(dn) <= 6 && !trail && scoredOn,
+          halfUse = per === 1 && hb - px <= 3 && tos[s] > TUNE.toCarry;
         // your timeout style (Game Day, halftime or a timeout): Quick calls one after a shorter run, Save keeps two for the finish; Normal is the original rule
         let tmo = s === 0 ? e.tactics.tmo : "",
-          runNeed = TUNE.toRun + (tmo === "Quick" ? -2 : tmo === "Save" ? 3 : 0),
-          keep = tmo === "Save" ? 2 : 0;
+          runNeed = TUNE.toRun + (tmo === "Quick" ? -1 : tmo === "Save" ? 3 : 0),
+          keep = tmo === "Save" ? 2 : 0,
+          special = lateNeed || leadUse || halfUse;
         if (
           tos[s] > 0 &&
           (tos[s] > keep || lateNeed) &&
-          px - lastTo[s] > 3 &&
-          (hurt >= runNeed || lateNeed) &&
-          ne(e) < (lateNeed ? (tmo === "Save" ? 0.8 : 0.55) : 0.75)
+          px - lastTo[s] > (special ? 1 : 3) &&
+          (hurt >= runNeed || special) &&
+          ne(e) < (lateNeed ? (tmo === "Save" ? 0.8 : 0.6) : leadUse ? 0.35 : halfUse ? 0.6 : 0.75)
         ) {
           (tos[s]--, (lastTo[s] = px), (bo[s] = 2), (rn = 0), (mo *= 0.2));
           pb(
             s === 0 ? "us" : "opp",
-            `Timeout, ${s === 0 ? "your team" : a.opponent} (${tos[s]} left)${lateNeed ? "" : ` after a ${Math.abs(hurt)}-0 run`}`
+            `Timeout, ${s === 0 ? "your team" : a.opponent} (${tos[s]} left)${lateNeed ? "" : leadUse ? " to set up a play" : halfUse ? " before the half" : ` after a ${Math.abs(hurt)}-0 run`}`
           );
           // Game Day: stop at your own timeout (not on the last possession of a half, and not in overtime)
           s === 0 && op && op.pause && px < h && px !== hb && (stop = 1);
@@ -3033,6 +3044,11 @@ function chkDraft(e) {
     throw new Error(
       "Decide on your draft and transfer-portal players first. Open the pop-up from Program HQ."
     );
+  // Item 59: one of your entrants withdrew from the portal and waits for Accept or Deny
+  if ((e.prospects || []).some((p) => p.wb && p.status === "Available"))
+    throw new Error(
+      "A player who withdrew from the portal wants to come back. Accept or deny it first (Transfer decisions on Program HQ)."
+    );
 }
 function awardRaise(e, aw) {
   let T = {
@@ -3271,9 +3287,11 @@ function ncFor(e) {
     .map((a, l) => {
       // item 55: two early-season events at neutral sites (two games each, slots NC_EVENT_SLOTS); two road games, the rest at home.
       // Home minus away stays 4 games (8 home / 4 away before), so the total home-court edge of a season is unchanged.
+      // rd 1 = the event's first game, rd 2 = its second game: the opponent is set after the first one (W_day): winners meet winners
+      // and losers meet losers (the same for every other team, which also plays both event games at a neutral site)
       let ev = NC_EVENT_SLOTS.findIndex((z) => z.includes(l));
       return ev >= 0
-        ? { teamId: a.id, venue: "Neutral", event: ncEvents(e)[ev][0] }
+        ? { teamId: a.id, venue: "Neutral", event: ncEvents(e)[ev][0], rd: NC_EVENT_SLOTS[ev].indexOf(l) + 1 }
         : { teamId: a.id, venue: l === 0 || l === 6 ? "Away" : "Home" };
     });
 }
@@ -3290,6 +3308,12 @@ var NC_EVENT_SLOTS = [
   [3, 4],
   [9, 10],
 ];
+// true when nonconference game d (0 to 11) is the second game of an event whose first game is still at the event too
+function evSecond(e, d) {
+  let a = e.nc && e.nc[d - 1],
+    b = e.nc && e.nc[d];
+  return !!(a && b && a.rd === 1 && b.rd === 2 && a.event && a.event === b.event && a.venue === "Neutral" && b.venue === "Neutral");
+}
 function ncEvents(e) {
   return [NC_EVENTS[e.year % 6], NC_EVENTS[(e.year + 3) % 6]];
 }
@@ -3760,7 +3784,9 @@ function W_sched(e) {
   let groups = (e.confs || []).map((g, ci) => (ci === 0 ? e.league.map((l) => l.id) : g));
   for (let d = 0; d < 30; d++) {
     let pairs = [];
-    if (d < 12) {
+    if (d < 12 && evSecond(e, d)) {
+      // second game of an event (item 55): nobody is paired in advance; W_day pairs winners with winners and losers with losers
+    } else if (d < 12) {
       let occ = e.nc[d] && e.nc[d].teamId,
         pool = ids.filter((i) => i !== occ);
       for (let k = pool.length - 1; k > 0; k--) {
@@ -3811,14 +3837,21 @@ function W_day(e, a) {
     W_qrec(e, opp, e.school.id, !a.win, a.venue === "Home" ? "A" : a.venue === "Away" ? "H" : "N"),
     W_tot(opp, a.them, a.us, a.poss || 70),
     rs(opp.id, !a.win));
+  // item 55: the two event days (first and second game of each event) are played at neutral sites by every team, and the
+  // second day is a bracket: after the first day winners meet winners and losers meet losers (set up at the end of the first day)
+  let ev1 = d >= 0 && d < 12 && !!(e.nc[d] && e.nc[d].rd === 1 && e.nc[d].event && e.nc[d].venue === "Neutral" && e.nc[d + 1]) && evSecond(e, d + 1),
+    evN = ev1 || (d >= 0 && d < 12 && evSecond(e, d)),
+    winners = [],
+    losers = [];
   for (let [x0, y0] of e.sch[d] || []) {
     let x = W_t(e, x0),
       y = W_t(e, y0);
     if (!x || !y) continue;
     let g = W_game(e, x, y),
       xw = g.winner.id === x.id;
+    ev1 && (winners.push(xw ? x0 : y0), losers.push(xw ? y0 : x0));
     (xw ? (x.wins++, y.losses++) : (y.wins++, x.losses++),
-      x.conf === y.conf && (xw ? (x.cw++, y.cl++) : (y.cw++, x.cl++)),
+      !evN && x.conf === y.conf && (xw ? (x.cw++, y.cl++) : (y.cw++, x.cl++)),
       (x.sr = (x.sr || 0) + y.rating),
       (y.sr = (y.sr || 0) + x.rating),
       xw && y.rating >= 78 && (x.qw = (x.qw || 0) + 1),
@@ -3827,10 +3860,38 @@ function W_day(e, a) {
       xw && x.rating <= 60 && (y.bl = (y.bl || 0) + 1),
       W_tot(x, g.sa, g.sb, g.poss || 70),
       W_tot(y, g.sb, g.sa, g.poss || 70),
-      W_qrec(e, x, y0, xw, "H"),
-      W_qrec(e, y, x0, !xw, "A"),
+      W_qrec(e, x, y0, xw, evN ? "N" : "H"),
+      W_qrec(e, y, x0, !xw, evN ? "N" : "A"),
       rs(x0, xw),
       rs(y0, !xw));
+  }
+  if (ev1) {
+    // your opponent in game 1 (a.oppId) lost if you won; you meet the closest-rated team among the other winners (or losers)
+    let g2 = e.schedule[d + 1];
+    (a.win ? losers : winners).push(a.oppId);
+    let mine = a.win ? winners : losers,
+      mineRating = Ps(e),
+      pick = [...mine].sort((p, q) => Math.abs((W_t(e, p)?.rating || 0) - mineRating) - Math.abs((W_t(e, q)?.rating || 0) - mineRating))[0],
+      o = pick && e.opponents.find((t) => t.id === pick);
+    if (g2 && !g2.played && o) {
+      mine.splice(mine.indexOf(pick), 1);
+      Object.assign(g2, { opponent: o.name, oppId: o.id, rating: o.rating, bk: a.win ? "Championship bracket (winners)" : "Consolation bracket (losers)" });
+      e.rival && o.id === e.rival.id ? (g2.rival = !0) : delete g2.rival;
+      e.nc[d + 1] = { ...e.nc[d + 1], teamId: o.id };
+    }
+    let next = [],
+      odd = [];
+    for (let grp of [winners, losers]) {
+      let L = [...grp];
+      for (let k = L.length - 1; k > 0; k--) {
+        let m = Math.floor(ne(e) * (k + 1));
+        [L[k], L[m]] = [L[m], L[k]];
+      }
+      for (let i = 0; i + 1 < L.length; i += 2) next.push([L[i], L[i + 1]]);
+      L.length % 2 && odd.push(L[L.length - 1]);
+    }
+    odd.length === 2 && next.push(odd);
+    e.sch[d + 1] = next;
   }
   d % 3 === 2 && W_pollWeek(e);
 }
@@ -3847,7 +3908,9 @@ function W_tsch(e, id) {
       let o = W_t(e, pr[0] === id ? pr[1] : pr[0]);
       opp = o && o.name;
     } else if (u && u.oppId === id) opp = me;
-    out.push({ d: d + 1, k: d < 12 ? "Nonconference" : "Conference", opp: opp || "\u2014", r: r || "" });
+    // item 55: both games of each early-season event are played at a neutral site by every team
+    let nv = d < 12 && opp && e.nc && e.nc[d] && e.nc[d].event && e.nc[d].venue === "Neutral" && (e.nc[d].rd === 1 || evSecond(e, d));
+    out.push({ d: d + 1, k: d < 12 ? "Nonconference" : "Conference", opp: opp ? opp + (nv ? " (neutral site)" : "") : "\u2014", r: r || "" });
   }
   return out;
 }
@@ -4113,15 +4176,18 @@ var STAFF_SHARE = { a: [0, 0.02, 0.045, 0.08], f: [0, 0.03, 0.07, 0.12] },
   ];
 function W_staffCostOf(e, st) {
   let b = e.baseBudget || e.budget || 0,
-    s = st || e.staff || {};
+    s = st || e.staff || {},
+    m = (k) => W_asstCostMult(e.asst?.[k]); // item 23: a better named assistant costs more
   return (
     Math.round(
-      (STAFF_SHARE.a[s.rec || 0] + STAFF_SHARE.a[s.dev || 0] + STAFF_SHARE.a[s.tac || 0] + STAFF_SHARE.f[s.fac || 0]) * b / 1e3
+      (STAFF_SHARE.a[s.rec || 0] * m("rec") + STAFF_SHARE.a[s.dev || 0] * m("dev") + STAFF_SHARE.a[s.tac || 0] * m("tac") + STAFF_SHARE.f[s.fac || 0]) * b / 1e3
     ) * 1e3
   );
 }
-function W_staffLevelCost(e, k, lv) {
-  return Math.round(((k === "fac" ? STAFF_SHARE.f : STAFF_SHARE.a)[lv] * (e.baseBudget || e.budget || 0)) / 1e3) * 1e3;
+// price of a level for a role; person = the assistant in question (default: the one in the chair)
+function W_staffLevelCost(e, k, lv, person) {
+  let m = k === "fac" ? 1 : W_asstCostMult(person === undefined ? e.asst?.[k] : person);
+  return Math.round(((k === "fac" ? STAFF_SHARE.f : STAFF_SHARE.a)[lv] * m * (e.baseBudget || e.budget || 0)) / 1e3) * 1e3;
 }
 // Item 25: national tournament wins (First Four excluded) by your conference mates this season; they earn "units" the league shares.
 function W_confWins(e) {
@@ -4391,6 +4457,72 @@ function W_coachYear(e, a, met) {
     ((c.yrs = 1), (c.len = 1));
     Be(e, "Contract expired", `Your contract ran out without an extension. You are working year to year at ${q(c.sal)}. Meet the win goal to earn a longer deal.`);
   }
+}
+
+// Item 23: named assistant coaches (recruiting, development, tactics). Facilities stay a plain level (not a person).
+// e.staff = { rec, dev, tac, fac } is still the LEVEL 0 to 3 (what you pay for), as before. e.asst = { rec, dev, tac } holds the person in each
+// chair: { id, name, rating (40 to 95), yrs (seasons with you) }. e.asstPool = { rec: [...], dev: [...], tac: [...] } are this offseason's candidates
+// (4 a role: { id, name, rating }). A perk is the level's old perk x rating / 65 (a 65 rating gives exactly the old numbers), and a better assistant costs more
+// (0.85 to 1.15 x the level's price). Everything here comes from a fixed hash of school, year and role (no random numbers), so nothing moves for a
+// career that never hires anyone (auto-play and the balance tests), and old saves get a named 65-rated assistant for the levels they already paid for.
+// Each rollover (W_asstYear, called from wS): an assistant may take a head coaching job (about 1.5%, 7% and up for a rating of 72 or more) or be poached by
+// another school (3% plus 0.15% a rating point above 50, more when your reputation is low); either way the chair is empty and you hire again.
+// The others gain 1 or 2 rating points of experience (up to 95).
+var ASST_FIRST = ["Mike", "Dave", "Chris", "Tom", "Jeff", "Greg", "Andre", "Marcus", "Rick", "Dan", "Kevin", "Brian", "Terrell", "Luis", "Paul", "Steve", "Darnell", "Mark", "Jason", "Eric", "Carlos", "Ron", "Tyrone", "Scott"],
+  ASST_LAST = ["Hollis", "Brennan", "Okafor", "Delgado", "Whitfield", "Kowalski", "Reyes", "Tanaka", "Booker", "Sullivan", "Marsh", "Pruitt", "Nakamura", "Castillo", "Frazier", "Lindqvist", "Odom", "Barrett", "Mendez", "Hartley", "Ramsey", "Voss", "Coleman", "Dunn"],
+  ASST_ROLES = ["rec", "dev", "tac"];
+function W_asstMake(e, k, i, yr) {
+  let h = TS(`${e.school.id}-${yr}-asst-${k}-${i}`),
+    r = 44 + ((h % 100) / 100) * 22 + (((h >>> 8) % 100) / 100) * 22; // 44 to 88, bunched around 66
+  return {
+    id: `a${yr}${k}${i}`,
+    name: ASST_FIRST[(h >>> 4) % ASST_FIRST.length] + " " + ASST_LAST[(h >>> 12) % ASST_LAST.length],
+    rating: Math.round(r),
+  };
+}
+// the level of an assistant in a perk formula: his paid level x rating / 65 (no named assistant, as in an old save before its first rollover: x 1)
+function W_staffLv(e, k) {
+  let lv = e.staff?.[k] || 0,
+    a = e.asst?.[k];
+  return a ? lv * (a.rating / 65) : lv;
+}
+// price multiplier for the person in a chair (or for a candidate)
+function W_asstCostMult(person) {
+  return person ? 0.85 + (le(person.rating, 40, 90) - 40) * 0.006 : 1;
+}
+function W_asstPool(e) {
+  let pool = {};
+  for (let k of ASST_ROLES) pool[k] = [0, 1, 2, 3].map((i) => W_asstMake(e, k, i, e.year));
+  return pool;
+}
+// the yearly step at the rollover
+function W_asstYear(e) {
+  e.asst = e.asst || {};
+  for (let k of ASST_ROLES) {
+    let lv = e.staff?.[k] || 0,
+      a = e.asst[k];
+    // old save (or a level set before this item): the chair gets a named 65-rated assistant
+    if (lv && !a) {
+      a = e.asst[k] = { ...W_asstMake(e, k, 9, e.year), rating: 65, yrs: 1 };
+      continue;
+    }
+    if (!a) continue;
+    let role = STAFF_ROLES.find((r) => r.k === k).name,
+      h = TS(`${e.school.id}-${e.year}-leave-${a.id}`),
+      r1 = (h % 1000) / 1000,
+      r2 = ((h >>> 10) % 1000) / 1000,
+      pLeave = a.rating >= 72 ? 0.07 + (a.rating - 72) * 0.005 : 0.015,
+      pPoach = 0.03 + Math.max(0, a.rating - 50) * 0.0015 + Math.max(0, 60 - (e.rep || 50)) * 0.0005;
+    if (r1 < pLeave || r2 < pPoach) {
+      let why = r1 < pLeave ? `${a.name} took a head coaching job elsewhere.` : `${a.name} was hired away by another school.`;
+      Be(e, "Assistant coach left", `${role}: ${why} The chair is empty until you hire someone (Staff tab on the NIL budget page).`);
+      e.asst[k] = null;
+      e.staff = { ...(e.staff || {}), [k]: 0 };
+    } else {
+      ((a.yrs = (a.yrs || 1) + 1), (a.rating = Math.min(95, a.rating + ((h >>> 20) % 3 === 0 ? 2 : 1))));
+    }
+  }
+  e.asstPool = W_asstPool(e);
 }
 
 var FIELD_SIZE = 68;
@@ -4802,7 +4934,10 @@ function W_showBids(e, a, pwr) {
 // One wave of the transfer portal window (item 38). Your offers move forward like in a recruiting round and are
 // decided when they reach 100 or in the last wave. Everyone else is decided by other schools in his own wave
 // (pwv): the best players go first and to the schools that rank highest on his list (rivalLead).
-function W_pwave(e) {
+// Item 59: ask = the player clicked "Advance portal wave". Then one of your own entrants who withdraws is NOT signed
+// back at once: he waits (wb) for your Accept or Deny in the Transfer portal watch pop-up. Auto-recruit, "Start season"
+// and auto-play (ask false) keep the old automatic return, so nothing waits for a click.
+function W_pwave(e, ask) {
   if (!(e.pw >= 1 && e.pw <= 3)) return;
   W_PST = e.pst || (e.pst = {});
   let w = e.pw,
@@ -4812,7 +4947,7 @@ function W_pwave(e) {
     pwr = W_power(e),
     taken = [];
   for (let a of e.prospects) {
-    if (a.status !== "Available" || !a.fid) continue;
+    if (a.status !== "Available" || !a.fid || a.wb) continue;
     if (a.offer) {
       let t = Nn(e, a, a.offer.nil, a.offer.role);
       a.progress = le(a.progress + j(e, 18, 30) + Math.round(t * 0.24) + a.scouted * 3, 0, 100);
@@ -4833,6 +4968,11 @@ function W_pwave(e) {
     if (ne(e) < TUNE.withdraw) {
       if (a.fid === e.school.id) {
         if (e.roster.length < 15) {
+          if (ask) {
+            a.wb = 1;
+            Be(e, "He withdrew from the portal", `${a.name} found no offer he liked and wants to come back. Accept or deny it in the Transfer portal watch pop-up.`);
+            continue;
+          }
           cy(e, a, a.nil || 0, "Rotation");
           Be(e, "He withdrew from the portal", `${a.name} found no offer he liked and is coming back to your program.`);
           continue;
@@ -4854,38 +4994,7 @@ function W_pwave(e) {
         }
       }
     }
-    // Item 41: not everyone lands. He leaves the game, moves down a level, or finds a school at his level.
-    let isP = pwr.has(a.fid),
-      f = a.fate || "any",
-      // Item 42: the best bid wins him; with no affordable bid he drops to whoever has room.
-      bid = f === "leave" ? null : W_bids(e, a, f, pwr)[0],
-      t =
-        f === "leave"
-          ? null
-          : (bid && e.opponents.find((z) => z.id === bid.id)) ||
-            W_pdest(e, a.ovr, f, pwr, a.fid) ||
-            W_pdest(e, a.ovr, "any", pwr, a.fid);
-    W_tally("shown", isP, t ? f : "leave");
-    if (!t) {
-      ((a.status = "Committed elsewhere"),
-        (a.progress = 100),
-        (a.decisionRound = 1),
-        (a.decisionYear = e.year),
-        (a.committedTo = "Left college basketball"),
-        (a.landed = 1),
-        delete a.offer,
-        gone.push(a));
-      continue;
-    }
-    ((a.status = "Committed elsewhere"),
-      (a.progress = 100),
-      (a.decisionRound = 1),
-      (a.decisionYear = e.year),
-      (a.committedTo = t.name),
-      (a.landed = 1),
-      delete a.offer,
-      W_place(e, a, t),
-      taken.push(a));
+    (W_pland(e, a, pwr) ? taken : gone).push(a);
   }
   for (let a of e.prospects) a.fid && a.status === "Available" && W_showBids(e, a, pwr);
   taken.sort((x, y) => y.ovr - x.ovr);
@@ -4944,6 +5053,37 @@ function W_pwave(e) {
       });
   }
   e.lnews = e.lnews.slice(0, 60);
+}
+// Where an entrant who is not signed ends up (W_pwave, and "Deny" for one of yours who wanted to come back).
+// Item 41: not everyone lands. He leaves the game, moves down a level, or finds a school at his level.
+// Returns the school, or null if he left college basketball.
+function W_pland(e, a, pwr) {
+  let isP = pwr.has(a.fid),
+    f = a.fate || "any",
+    // Item 42: the best bid wins him; with no affordable bid he drops to whoever has room.
+    bid = f === "leave" ? null : W_bids(e, a, f, pwr)[0],
+    t =
+      f === "leave"
+        ? null
+        : (bid && e.opponents.find((z) => z.id === bid.id)) ||
+          W_pdest(e, a.ovr, f, pwr, a.fid) ||
+          W_pdest(e, a.ovr, "any", pwr, a.fid);
+  W_tally("shown", isP, t ? f : "leave");
+  ((a.status = "Committed elsewhere"),
+    (a.progress = 100),
+    (a.decisionRound = 1),
+    (a.decisionYear = e.year),
+    (a.committedTo = t ? t.name : "Left college basketball"),
+    (a.landed = 1),
+    delete a.offer,
+    t && W_place(e, a, t));
+  return t;
+}
+// Item 58: the high school class is locked (no offers, scouting or official visits) while the portal window is open,
+// so the portal is settled first. p omitted = is the window open at all. High school rounds already wait for the window (my).
+const HS_LOCK_MSG = "High school class opens when the portal closes.";
+function hsLock(e, p) {
+  return e.pw >= 1 && e.pw <= 3 && (!p || p.origin === "High school");
 }
 function regOf(e) {
   let m = String(e.school.city || "")
@@ -5777,7 +5917,7 @@ function wS(e) {
           (j(e, 0, 3) +
             (e.specialty === "Development" ? 1 : 0) +
             (l.stats.min > 500 ? 1 : 0) +
-            (e.staff ? (e.staff.dev || 0) * 0.34 + (e.staff.fac || 0) * 0.15 : 0) +
+            (e.staff ? W_staffLv(e, "dev") * 0.34 + (e.staff.fac || 0) * 0.15 : 0) +
             (W_skill(e, "dev") - 50) * 0.012) *
             ({ Boom: 1.5, Plateau: 0.4, "Late bloomer": l.year <= 2 ? 0.5 : 1.7 }[l.dev] || 1) *
             (l.intl ? (l.year <= 2 ? 1.5 : 1.1) : 1) *
@@ -5925,9 +6065,11 @@ function wS(e) {
     (e.confBracket = null),
     (e.natBracket = null),
     (e.nitBracket = null),
-    (e.scouts = 10 + (e.specialty === "Recruiting" ? 6 : 0) + (e.staff?.rec || 0) * 2),
+    // item 23: assistants may leave or be poached, then the perks below use who is left
+    W_asstYear(e),
+    (e.scouts = 10 + (e.specialty === "Recruiting" ? 6 : 0) + Math.round(W_staffLv(e, "rec") * 2)),
     (e.chemistry = le(
-      Math.round(65 + a.length * 2 - t * 4 + (e.staff?.tac || 0) * 2 + (W_skill(e, "tac") - 50) * 0.06 + (W_skill(e, "cul") - 50) * 0.06),
+      Math.round(65 + a.length * 2 - t * 4 + W_staffLv(e, "tac") * 2 + (W_skill(e, "tac") - 50) * 0.06 + (W_skill(e, "cul") - 50) * 0.06),
       30,
       90
     )),
@@ -6002,14 +6144,14 @@ function scoutFav(e) {
   if (e.round > 8) return 0;
   let n = 0,
     fav = e.prospects
-      .filter((p) => p.target && p.status === "Available" && p.scouted < (p.intl ? 1 : 2))
+      .filter((p) => p.target && p.status === "Available" && p.scouted < (p.intl ? 1 : 2) && !hsLock(e, p))
       .sort((p, q) => (p.rank || 9) - (q.rank || 9) || q.stars - p.stars || q.interest - p.interest);
   for (let p of fav)
     for (; e.scouts > 0 && p.scouted < (p.intl ? 1 : 2);)
       (p.scouted++, e.scouts--, n++, (p.progress = le(p.progress + 8, 0, 99)), (p.interest = le(p.interest + 3, 0, 99)));
   // item 5: official visits go to favorites you have made an offer to (best first), only when auto-scout is used
   let offered = e.prospects
-    .filter((p) => p.target && p.offer && !p.fid && !p.ov && p.status === "Available")
+    .filter((p) => p.target && p.offer && !p.fid && !p.ov && p.status === "Available" && !hsLock(e, p))
     .sort((p, q) => (p.rank || 9) - (q.rank || 9) || q.stars - p.stars);
   for (let p of offered) {
     if ((e.ov ?? TUNE.ovisits) < 1) break;
@@ -6033,6 +6175,7 @@ function fy(e, a) {
       Da(e, "Offseason");
       let t = Ba(e, a.id, !0);
       if (t.status !== "Available") throw new Error("This player has already made a decision.");
+      if (hsLock(e, t)) throw new Error(HS_LOCK_MSG);
       if (e.round > 8) throw new Error("Scouting is closed for this offseason.");
       if (e.scouts < 1) throw new Error("No scouting visits remaining.");
       if (t.scouted >= (t.intl ? 1 : 2))
@@ -6051,6 +6194,8 @@ function fy(e, a) {
       if ((Da(e, "Offseason"), e.round > 9)) throw new Error("The recruiting window has closed.");
       let t = Ba(e, a.id, !0);
       if (t.status !== "Available") throw new Error("This player is no longer available.");
+      if (hsLock(e, t)) throw new Error(HS_LOCK_MSG);
+      if (t.wb) throw new Error("He withdrew from the portal and wants to come back: accept or deny it in the Transfer portal watch pop-up.");
       let l = ho(a.nil, 0, 5e6),
         u = String(a.role);
       if (!Ns.includes(u)) throw new Error("Choose a valid role.");
@@ -6096,11 +6241,33 @@ function fy(e, a) {
         lv = Math.round(a.level);
       if (!k) throw new Error("Unknown staff role.");
       if (!(lv >= 0 && lv <= 3)) throw new Error("Choose a level from 0 to 3.");
+      // an assistant (not facilities) needs a person: level 0 lets him go, a level above 0 changes his level; hiring is "hireAsst"
+      if (k.k !== "fac" && lv > 0 && !e.asst?.[k.k]) throw new Error("Hire an assistant first.");
       let cur = e.staff?.[k.k] || 0,
         extra = W_staffLevelCost(e, k.k, lv) - W_staffLevelCost(e, k.k, cur);
       if (extra > Ce(e)) throw new Error("Not enough available NIL for that.");
+      let gone = k.k !== "fac" && lv === 0 ? e.asst?.[k.k] : null;
       ((e.staff = { ...(e.staff || {}), [k.k]: lv }),
-        Be(e, "Staff", lv ? `${k.name} set to level ${lv}. Staff and facilities now cost ${q(W_staffCostOf(e))} a year.` : `${k.name} cut. Staff and facilities now cost ${q(W_staffCostOf(e))} a year.`));
+        gone && (e.asst[k.k] = null),
+        Be(e, "Staff", lv ? `${k.name} set to level ${lv}. Staff and facilities now cost ${q(W_staffCostOf(e))} a year.` : `${k.name} ${gone ? gone.name + " let go" : "cut"}. Staff and facilities now cost ${q(W_staffCostOf(e))} a year.`));
+      break;
+    }
+    case "hireAsst": {
+      // Item 23: hire a named assistant from this offseason's candidates at a level (1 to 3); he replaces the one in the chair, if any
+      Da(e, "Offseason");
+      let k = STAFF_ROLES.find((r) => r.k === a.key && r.k !== "fac"),
+        lv = Math.round(a.level);
+      if (!k) throw new Error("Unknown assistant role.");
+      if (!(lv >= 1 && lv <= 3)) throw new Error("Choose a level from 1 to 3.");
+      let who = (e.asstPool || W_asstPool(e))[k.k]?.find((c) => c.id === a.id);
+      if (!who) throw new Error("That candidate is no longer available.");
+      let old = e.asst?.[k.k],
+        extra = W_staffLevelCost(e, k.k, lv, who) - W_staffLevelCost(e, k.k, e.staff?.[k.k] || 0, old || null);
+      if (extra > Ce(e)) throw new Error("Not enough available NIL for that.");
+      ((e.asst = { ...(e.asst || {}), [k.k]: { ...who, yrs: 1 } }),
+        (e.staff = { ...(e.staff || {}), [k.k]: lv }),
+        (e.asstPool = { ...(e.asstPool || W_asstPool(e)), [k.k]: (e.asstPool || W_asstPool(e))[k.k].filter((c) => c.id !== who.id) }),
+        Be(e, "Staff", `${who.name} (rating ${who.rating}) hired as ${k.name.toLowerCase()} at level ${lv}${old ? `, replacing ${old.name}` : ""}. Staff and facilities now cost ${q(W_staffCostOf(e))} a year.`));
       break;
     }
     case "officialVisit": {
@@ -6109,6 +6276,7 @@ function fy(e, a) {
       let t = Ba(e, a.id, !0);
       if (t.status !== "Available") throw new Error("This player has already made a decision.");
       if (t.fid) throw new Error("Transfer portal entrants use campus visits.");
+      if (hsLock(e, t)) throw new Error(HS_LOCK_MSG);
       if (e.round > 8) throw new Error("Official visits are closed for this offseason.");
       if (t.ov) throw new Error("He has already made an official visit.");
       if ((e.ov ?? TUNE.ovisits) < 1) throw new Error("No official visits left this offseason.");
@@ -6125,7 +6293,27 @@ function fy(e, a) {
       chkDraft(e);
       Da(e, "Offseason");
       if (!(e.pw >= 1 && e.pw <= 3)) throw new Error("The transfer portal window is closed.");
-      W_pwave(e);
+      W_pwave(e, !0);
+      break;
+    }
+    case "wbDecision": {
+      // Item 59: one of your portal entrants withdrew and wants to come back. Accept signs him at his NIL; Deny sends him
+      // where any unsigned entrant goes (another school, or out of college basketball).
+      Da(e, "Offseason");
+      let t = e.prospects.find((p) => p.id === a.id && p.wb && p.status === "Available");
+      if (!t) throw new Error("That player is no longer waiting on you.");
+      if (a.accept) {
+        if (e.roster.length >= 15) throw new Error("Your roster is full (15 players). Deny him or open a spot first.");
+        let n = t.nil || 0;
+        if (n > Ce(e))
+          throw new Error(`Not enough available NIL to take him back: he asks ${q(n)} a year and you have ${q(Ce(e))}. Free up NIL or deny him.`);
+        (delete t.wb, cy(e, t, n, "Rotation"), Be(e, "He withdrew from the portal", `${t.name} withdrew from the portal and is back in your program.`));
+      } else {
+        W_PST = e.pst || (e.pst = {});
+        delete t.wb;
+        let s0 = W_pland(e, t, W_power(e));
+        Be(e, "Portal decision", s0 ? `You turned ${t.name} away. He signed with ${s0.name}.` : `You turned ${t.name} away. He left college basketball.`);
+      }
       break;
     }
     case "recruitRound": {
@@ -6347,6 +6535,9 @@ function fy(e, a) {
           );
       for (let l of Object.keys(e)) delete e[l];
       (Object.assign(e, o),
+        // item 48: player ids count up from 0 in every career (Ff), so a follower's old id can belong to a player of the new
+        // roster; keeping him then put two players with one id on the roster, which the load check rejects ("could not be opened")
+        fol.forEach((l) => (l.id = Ff(e, "p"))),
         (e.xfers = fol.map((l) => ({
           ...xf(e, l),
           kind: "follow",
@@ -6722,6 +6913,7 @@ function fy(e, a) {
       let t = ho(a.index, 0, 11),
         l = e.opponents.find((d) => d.id === a.teamId);
       if (!l) throw new Error("Choose an opponent.");
+      if (e.nc[t].rd === 2 && e.nc[t].event) throw new Error("The second game of an event is decided by the first one.");
       let u = String(a.venue);
       if (!["Home", "Away", "Neutral"].includes(u)) throw new Error("Choose a venue.");
       let o = a.guarantee === void 0 ? !!e.nc[t].guarantee : !!a.guarantee,
@@ -6740,7 +6932,7 @@ function fy(e, a) {
         throw new Error(
           "That guarantee money is already committed. Withdraw offers before reducing schedule income."
         );
-      ((e.nc[t] = { teamId: l.id, venue: u, guarantee: r, ...(u === "Neutral" && e.nc[t].event ? { event: e.nc[t].event } : {}) }),
+      ((e.nc[t] = { teamId: l.id, venue: u, guarantee: r, ...(u === "Neutral" && e.nc[t].event ? { event: e.nc[t].event, rd: e.nc[t].rd } : {}) }),
         (e.ncCustom = !0),
         (e.guaranteeIncome = n),
         (e.budget = i),
@@ -6954,12 +7146,23 @@ function kS(e) {
   let a = e.roster.length,
     t = Ce(e),
     // favorites (bookmarked before auto-recruit) are tried first and may cost a bit more than the even share
-    fav = new Set(e.prospects.filter((v) => v.target && v.status === "Available").map((v) => v.id));
+    fav = new Set(e.prospects.filter((v) => v.target && v.status === "Available").map((v) => v.id)),
+    // item 58: while the portal window is open a high school pick cannot get an offer yet. His spot and money are
+    // reserved (res) and the offer is made when the window closes, so the roster mix stays as before the lock
+    // (without this, every open spot went to older transfers and long careers got much weaker).
+    res = new Map(),
+    pend = () => [...e.prospects.filter((v) => v.offer && v.status === "Available"), ...[...res.values()].map((z) => z.p)],
+    sign = (y, nil, role) =>
+      ((y.offer = { nil, role }),
+      (y.target = !0),
+      e.scouts > 0 &&
+        y.scouted < (y.intl ? 1 : 2) &&
+        (y.scouted++, e.scouts--, (y.progress += 8), (y.interest = Math.min(99, y.interest + 3))));
   for (; e.round <= 9 && e.roster.length < 15;) {
-    let u = e.prospects.filter((o) => o.offer && o.status === "Available");
+    let u = pend();
     for (; e.roster.length + u.length < 15;) {
       let o = 15 - e.roster.length - u.length,
-        r = Ce(e);
+        r = Ce(e) - [...res.values()].reduce((s, z) => s + z.nil, 0);
       if (r < 1e3) break;
       // class balance (item 16): how many players graduate in each of the next four years, counting pending offers
       let gy = [0, 0, 0, 0];
@@ -6973,6 +7176,7 @@ function kS(e) {
             (v) =>
               v.status === "Available" &&
               !v.offer &&
+              !res.has(v.id) &&
               v.ask <= (fav.has(v.id) ? Math.min(r, d * 1.5) : d) &&
               (e.round < 9 || Nn(e, v, v.ask, v.ovr >= 76 ? "Starter" : "Rotation") >= 20)
           )
@@ -6998,14 +7202,14 @@ function kS(e) {
         C = Math.min(r, Math.round(
             Math.min(fav.has(y.id) ? Math.max(d, y.ask) : d, Math.max(y.ask, i * 0.85), y.ask * 1.3) / 1e3
           ) * 1e3);
-      ((y.offer = { nil: C, role: p }),
-        (y.target = !0),
-        e.scouts > 0 &&
-          y.scouted < (y.intl ? 1 : 2) &&
-          (y.scouted++, e.scouts--, (y.progress += 8), (y.interest = Math.min(99, y.interest + 3))),
-        (u = e.prospects.filter((v) => v.offer && v.status === "Available")));
+      (hsLock(e, y) ? res.set(y.id, { p: y, nil: C, role: p }) : sign(y, C, p), (u = pend()));
     }
     my(e);
+    // the window closed: the reserved high school picks get their offers now
+    if (!hsLock(e)) {
+      for (let z of res.values()) z.p.status === "Available" && !z.p.offer && sign(z.p, z.nil, z.role);
+      res.clear();
+    }
   }
   if (e.roster.length >= 15) for (let u of e.prospects) delete u.offer;
   // a full roster can end the loop while the portal window is still open: finish its waves
@@ -7263,6 +7467,7 @@ var Gn =
     ov: A.optional(),
     pwv: A.optional(),
     landed: A.optional(),
+    wb: A.optional(),
     origin: x.string().optional(),
     portrait: x.number().int().min(0).max(15),
     ovr: A,
@@ -7345,6 +7550,8 @@ var Gn =
     played: x.boolean(),
     guarantee: A.optional(),
     event: x.string().optional(),
+    rd: A.optional(),
+    bk: x.string().optional(),
     rival: x.boolean().optional(),
     poss: A.optional(),
     us: A.optional(),
@@ -7364,6 +7571,8 @@ var Gn =
     sres: x.any().optional(),
     rev: x.any().optional(),
     staff: x.any().optional(),
+    asst: x.any().optional(),
+    asstPool: x.any().optional(),
     skills: x.any().optional(),
     contract: x.any().optional(),
     earn: A.optional(),
@@ -7475,7 +7684,7 @@ var Gn =
     ),
     league: x.array(Xs).min(8).max(18),
     schedule: x.array(qC).max(60),
-    nc: x.array(x.object({ teamId: x.string(), venue: x.string(), guarantee: A.optional(), event: x.string().optional() })).length(12),
+    nc: x.array(x.object({ teamId: x.string(), venue: x.string(), guarantee: A.optional(), event: x.string().optional(), rd: A.optional() })).length(12),
     opponents: x.array(Xs).min(63),
     lineup: x.array(x.string()).max(5),
     tactics: x.object({ offense: x.string(), defense: x.string(), pace: x.string(), tmo: x.string().optional() }),
@@ -8624,8 +8833,8 @@ function applyCfg() {
   ));
 
 // Filled in by tools/build.js: which build this is, and the "What's new" digest of the instruction log (item 32).
-var BUILD_INFO = {"version":"V13","build":127,"commit":"031efca","dirty":false,"date":"2026-10-05T04:32:11.967Z"},
-  WHATS_NEW = [{"id":"0025","date":"2026-10-05","title":"Big update: items 12, 15, 16, 22, 31, 33, 34, 53, 55","text":"Stage 1 is finished: I measured the game as it stands, wrote the numbers into CLAUDE.md under \"Baselines\", and committed it as \"Baseline\". I changed no game code and did not push. The commit also picked up the claude-log and prompt files that were already waiting."},{"id":"0024","date":"2026-10-05","title":"Big update: items 8, 9, 10, 11, 47, 50, 51, 54","text":"The baseline is recorded and saved as one commit called \"Baseline\" (ce627d2). I changed no game code, and nothing was pushed. The \"Baselines\" section of CLAUDE.md now has a full and a quick baseline, and the old ones are still there. The commit also picked up the log files that were already waiting in the folder."},{"id":"0023","date":"2026-10-04","title":"Big update: items 37, 38, 39, 40, 41, 42, 43, 44, 45","text":"I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\". I changed no game code, and nothing was pushed. The numbers come from commit 7cffff8, the code as it stood before this stage."},{"id":"0022","date":"2026-10-04","title":"Big update: items 26, 27, 28, 29, 30","text":"Both baselines are measured, written into CLAUDE.md under \"Baselines\" and committed as \"Baseline\". I didn't change any game code, and nothing was pushed."},{"id":"0021","date":"2026-10-04","title":"Big update: items 17, 18, 19, 21, 32, 35, 36, 52","text":"All five items are done and committed one by one (17, 18, 19, 21, 32), and nothing was pushed. None of them touched how games play. After each one npm test passed, including the draft shares, and I ran the screen tests for the ones that changed screens."},{"id":"0020","date":"2026-10-04","title":"Big update: items 14, 20, 48, 49","text":"All four items are done and committed, one commit each (14, 20, 48, 49). Nothing was pushed. After each one npm test passed. The three that change a screen also passed the quick screen test (101 checks, none failed)."},{"id":"0018","date":"2026-10-04","title":"Confrence and Schedule ranking boost","text":"Schedule strength and conference strength now count a bit more in the national rankings. The build and npm test pass, and the change is committed but not pushed."},{"id":"0017","date":"2026-10-04","title":"Big update 1","text":"All seven changes are in and committed (nothing pushed). The build, npm test and the screen test (186 steps) all pass, and the game-numbers test shows no change to how games play. Two of the fixes are checked with real player and school data; the draft-keep and rankings changes are only partly checked (see the end)."},{"id":"0016","date":"2026-10-04","title":"asking price displayed my recruits","text":"Your players' cards now show an \"Asking\" amount under the NIL line, so you can see what each one wants next to what you pay. I haven't looked at the cards on screen, so I haven't seen how it fits."},{"id":"0015","date":"2026-10-04","title":"phone","text":"The game now works on a 390-pixel-wide phone screen, it's easy to tap, and it can be installed as a home-screen app that works without internet. Every check passed. Nothing has been sent to GitHub or the public website yet."},{"id":"0014","date":"2026-10-03","title":"confrence ranking/top 25","text":"The Top 25 now lives in League news, and League news has a new Conference ranking tab. The game builds, npm test passes, and the click-through screen test passed all 186 steps."},{"id":"0013","date":"2026-10-03","title":"Put the confrence under team names in","text":"On the start page, each school card now shows its conference on a line right under the team name (for example, \"Gulf Conference\" under \"Delta State Tech\"). It's committed and not pushed."},{"id":"0012","date":"2026-10-03","title":"scratch all of this 5 years before","text":"Poor schools now have low expectations and a long grace period, and rich schools have high expectations and a short one. Schools are labeled by budget, not \"Easy\" or \"Hard\". I rebuilt the game, committed the change and did not push."},{"id":"0011","date":"2026-10-03","title":"Reverse the difficuly things and put the","text":"The difficulty is now reversed: rich, strong schools are Easy and poor, weak schools are Brutal. The start page lists schools from richest to poorest. The build, npm test and npm run test:ui all pass. The balance test now flags every tier, because its targets were written for the old direction."},{"id":"0010","date":"2026-10-03","title":"Let player go fix","text":"I couldn't reproduce the break, so I only fixed a wrong message on that screen. If you still see the problem, I need to know exactly what happened."},{"id":"0009","date":"2026-10-03","title":"Tab in league news with the top 50 players","text":"League News now has a \"Top 50\" tab. It's built, tested and committed, and I didn't push."},{"id":"0008","date":"2026-10-03","title":"pictures on my recruit recruit pages are","text":"The recruit picture is fixed: it now shows the whole head and shoulders instead of a zoomed-in crop. I checked this in a screenshot of a recruit's page."},{"id":"0007","date":"2026-10-03","title":"Suggested Edits","text":"That notice only confirms the balance runs ended. I'd already read their results and finished the work, so nothing changes."},{"id":"0006","date":"2026-10-03","title":"start new career option","text":"There's now a Start a new career button on the screen that says the saved career could not be opened."},{"id":"0005","date":"2026-10-03","title":"v13","text":"All 19 requests are done and saved as one commit on this computer. Nothing has been pushed to GitHub."},{"id":"0004","date":"2026-10-03","title":"Task 4: asking prices, long careers, season UI checks","text":"All four parts are done and committed as 29f99a0 (not pushed). The one target not quite met: the Hard tier has 44% of long careers fired against \"about 40%\"."},{"id":"0003","date":"2026-10-03","title":"Task 3: UI click-through test and multi-season money test","text":"I added both tests and ran them. Together they found one real bug, which I fixed. Final results: - npm run test:ui: 167 of 167 steps pass. - npm run test:nil: no CHECK flags. - npm test: all checks pass. - npm run test:realism: every row is still PASS, with the same numbers as before (the fix only touched the screen,…"},{"id":"0002","date":"2026-10-03","title":"Task 2: fix rebounds, blocks and other-team noise","text":"All realism rows now pass, balance is still in range, and npm test passes. The changes are committed (not pushed)."},{"id":"0001","date":"2026-10-03","title":"Task 1: add realism and balance measurement tests","text":"The balance run has started (30 schools, 3 seasons, 5 Chrome workers). I'll get a notification when it finishes."},{"id":"0000","date":"2026-10-03","title":"First look: check the build and plan the fixes (read-only)","text":"The game has been split into src/. The user asked me to confirm it builds and that npm test passes, then list the open issues from CLAUDE.md and propose an order to fix them. No files were to be changed."}];
+var BUILD_INFO = {"version":"V13","build":140,"commit":"562a23c","dirty":false,"date":"2026-10-05T13:17:16.449Z"},
+  WHATS_NEW = [{"id":"0027","date":"2026-10-05","title":"Big update","text":"Stage 1 is finished. I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\" (commit 0b71168). I changed no game code and pushed nothing. The commit also picked up tools/prompts/edit-0027-big-update-s1.txt, which was sitting uncommitted in the project folder."},{"id":"0025","date":"2026-10-05","title":"Big update: items 12, 15, 16, 22, 31, 33, 34, 53, 55","text":"Stage 1 is finished: I measured the game as it stands, wrote the numbers into CLAUDE.md under \"Baselines\", and committed it as \"Baseline\". I changed no game code and did not push. The commit also picked up the claude-log and prompt files that were already waiting."},{"id":"0024","date":"2026-10-05","title":"Big update: items 8, 9, 10, 11, 47, 50, 51, 54","text":"The baseline is recorded and saved as one commit called \"Baseline\" (ce627d2). I changed no game code, and nothing was pushed. The \"Baselines\" section of CLAUDE.md now has a full and a quick baseline, and the old ones are still there. The commit also picked up the log files that were already waiting in the folder."},{"id":"0023","date":"2026-10-04","title":"Big update: items 37, 38, 39, 40, 41, 42, 43, 44, 45","text":"I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\". I changed no game code, and nothing was pushed. The numbers come from commit 7cffff8, the code as it stood before this stage."},{"id":"0022","date":"2026-10-04","title":"Big update: items 26, 27, 28, 29, 30","text":"Both baselines are measured, written into CLAUDE.md under \"Baselines\" and committed as \"Baseline\". I didn't change any game code, and nothing was pushed."},{"id":"0021","date":"2026-10-04","title":"Big update: items 17, 18, 19, 21, 32, 35, 36, 52","text":"All five items are done and committed one by one (17, 18, 19, 21, 32), and nothing was pushed. None of them touched how games play. After each one npm test passed, including the draft shares, and I ran the screen tests for the ones that changed screens."},{"id":"0020","date":"2026-10-04","title":"Big update: items 14, 20, 48, 49","text":"All four items are done and committed, one commit each (14, 20, 48, 49). Nothing was pushed. After each one npm test passed. The three that change a screen also passed the quick screen test (101 checks, none failed)."},{"id":"0018","date":"2026-10-04","title":"Confrence and Schedule ranking boost","text":"Schedule strength and conference strength now count a bit more in the national rankings. The build and npm test pass, and the change is committed but not pushed."},{"id":"0017","date":"2026-10-04","title":"Big update 1","text":"All seven changes are in and committed (nothing pushed). The build, npm test and the screen test (186 steps) all pass, and the game-numbers test shows no change to how games play. Two of the fixes are checked with real player and school data; the draft-keep and rankings changes are only partly checked (see the end)."},{"id":"0016","date":"2026-10-04","title":"asking price displayed my recruits","text":"Your players' cards now show an \"Asking\" amount under the NIL line, so you can see what each one wants next to what you pay. I haven't looked at the cards on screen, so I haven't seen how it fits."},{"id":"0015","date":"2026-10-04","title":"phone","text":"The game now works on a 390-pixel-wide phone screen, it's easy to tap, and it can be installed as a home-screen app that works without internet. Every check passed. Nothing has been sent to GitHub or the public website yet."},{"id":"0014","date":"2026-10-03","title":"confrence ranking/top 25","text":"The Top 25 now lives in League news, and League news has a new Conference ranking tab. The game builds, npm test passes, and the click-through screen test passed all 186 steps."},{"id":"0013","date":"2026-10-03","title":"Put the confrence under team names in","text":"On the start page, each school card now shows its conference on a line right under the team name (for example, \"Gulf Conference\" under \"Delta State Tech\"). It's committed and not pushed."},{"id":"0012","date":"2026-10-03","title":"scratch all of this 5 years before","text":"Poor schools now have low expectations and a long grace period, and rich schools have high expectations and a short one. Schools are labeled by budget, not \"Easy\" or \"Hard\". I rebuilt the game, committed the change and did not push."},{"id":"0011","date":"2026-10-03","title":"Reverse the difficuly things and put the","text":"The difficulty is now reversed: rich, strong schools are Easy and poor, weak schools are Brutal. The start page lists schools from richest to poorest. The build, npm test and npm run test:ui all pass. The balance test now flags every tier, because its targets were written for the old direction."},{"id":"0010","date":"2026-10-03","title":"Let player go fix","text":"I couldn't reproduce the break, so I only fixed a wrong message on that screen. If you still see the problem, I need to know exactly what happened."},{"id":"0009","date":"2026-10-03","title":"Tab in league news with the top 50 players","text":"League News now has a \"Top 50\" tab. It's built, tested and committed, and I didn't push."},{"id":"0008","date":"2026-10-03","title":"pictures on my recruit recruit pages are","text":"The recruit picture is fixed: it now shows the whole head and shoulders instead of a zoomed-in crop. I checked this in a screenshot of a recruit's page."},{"id":"0007","date":"2026-10-03","title":"Suggested Edits","text":"That notice only confirms the balance runs ended. I'd already read their results and finished the work, so nothing changes."},{"id":"0006","date":"2026-10-03","title":"start new career option","text":"There's now a Start a new career button on the screen that says the saved career could not be opened."},{"id":"0005","date":"2026-10-03","title":"v13","text":"All 19 requests are done and saved as one commit on this computer. Nothing has been pushed to GitHub."},{"id":"0004","date":"2026-10-03","title":"Task 4: asking prices, long careers, season UI checks","text":"All four parts are done and committed as 29f99a0 (not pushed). The one target not quite met: the Hard tier has 44% of long careers fired against \"about 40%\"."},{"id":"0003","date":"2026-10-03","title":"Task 3: UI click-through test and multi-season money test","text":"I added both tests and ran them. Together they found one real bug, which I fixed. Final results: - npm run test:ui: 167 of 167 steps pass. - npm run test:nil: no CHECK flags. - npm test: all checks pass. - npm run test:realism: every row is still PASS, with the same numbers as before (the fix only touched the screen,…"},{"id":"0002","date":"2026-10-03","title":"Task 2: fix rebounds, blocks and other-team noise","text":"All realism rows now pass, balance is still in range, and npm test passes. The changes are committed (not pushed)."},{"id":"0001","date":"2026-10-03","title":"Task 1: add realism and balance measurement tests","text":"The balance run has started (30 schools, 3 seasons, 5 Chrome workers). I'll get a notification when it finishes."},{"id":"0000","date":"2026-10-03","title":"First look: check the build and plan the fixes (read-only)","text":"The game has been split into src/. The user asked me to confirm it builds and that npm test passes, then list the open issues from CLAUDE.md and propose an order to fix them. No files were to be changed."}];
 
 function DiagPanel({ g: e }) {
   let R = e.opponents.map((t) => t.rating),
@@ -9126,12 +9335,12 @@ var HOW_IT_WORKS = {
   portal: [
     "Players who are unhappy (little playing time, a broken promise, a bigger offer elsewhere) may enter the portal. The reason is shown on each row.",
     "You get one conversation with each. Promising a role and offering extra NIL both raise the chance he stays. The money is only spent if he stays.",
-    "“Let him go” puts him in the portal. You can still bring him back with an offer, and about 1 in 20 entrants who get no offer they like change their mind and stay.",
+    "“Let him go” puts him in the portal. You can still bring him back with an offer, and about 1 in 20 entrants who get no offer they like change their mind and stay. If one of yours does, you choose: Accept takes him back at his NIL, Deny sends him to another school.",
     "After you take a new job, some of your old players may ask to follow you here.",
     "About 5 players per school enter each year. You see the best 170 under Recruiting > Transfer portal, and you recruit them like any other player; they can play right away.",
     "Schools bid for each entrant within their own budgets and he leans to the best fit, so a strong rival bid lowers your chance. You get 3 campus visits in the window (a visit raises his interest). Graduate transfers have one year left and ask for less.",
     "To open a spot you can release a player into the portal (player profile, “Release into portal”). The first release is free; each one after that costs reputation and team morale.",
-    "The portal is a short window of 3 waves before the high school rounds. The best entrants are decided first, so make offers early. Unsigned entrants are gone when it closes.",
+    "The portal is a short window of 3 waves before the high school rounds. The best entrants are decided first, so make offers early. Unsigned entrants are gone when it closes. The high school class is locked (no offers, scouting or official visits) until the window closes.",
   ],
 };
 function HowItWorks({ kind }) {
@@ -9592,6 +9801,15 @@ window.__dbg = {
   W_eff: W_eff,
   W_advPlayers: W_advPlayers,
   W_classRank: W_classRank,
+  // item 48: runs the load path's check and repair on a copy of a career; returns the repair steps ([] = loads as it is) or throws
+  saveCheck: (g) => {
+    let steps = [];
+    return (repairCareer(JSON.parse(JSON.stringify(g)), steps), steps);
+  },
+  W_tsch: W_tsch,
+  W_asstPool: W_asstPool,
+  W_staffLv: W_staffLv,
+  W_staffCostOf: W_staffCostOf,
   W_top25: W_top25,
 };
 
@@ -9844,7 +10062,12 @@ function oc() {
           drA && CFG.pop.draft && setDraftOpen(!0),
           elA && CFG.pop.elim && setElimAlert(elA),
           chA && CFG.pop.champ && setChampOpen(!0),
-          xfA && CFG.pop.xfer && setXferOpen(!0),
+          // item 59: a portal withdrawal waiting for Accept / Deny opens the same pop-up
+          (xfA ||
+            ($a.game.prospects.some((Kn) => Kn.wb && Kn.status === "Available") &&
+              !(e?.prospects || []).some((Kn) => Kn.wb && Kn.status === "Available"))) &&
+            CFG.pop.xfer &&
+            setXferOpen(!0),
           rtA.length && CFG.pop.ret && setRetAlert(rtA),
           wnA && CFG.pop.win && setWinAlert(wnA),
           opA && CFG.pop.start && setOpenedAlert(opA),
@@ -10443,20 +10666,25 @@ function oc() {
           wide: !0,
           children: (() => {
             let xl = e.xfers || [],
-              pend = xl.filter((d) => d.status === "pending");
+              pend = xl.filter((d) => d.status === "pending"),
+              wbl = e.prospects.filter((d) => d.wb && d.status === "Available");
             return (0, s.jsxs)("div", {
               className: "alert-modal",
               children: [
                 (0, s.jsx)("p", {
                   className: "eyebrow",
                   children:
-                    xl.length && xl.every((d) => d.kind === "follow")
+                    xl.length && xl.every((d) => d.kind === "follow") && !wbl.length
                       ? "YOUR FORMER PLAYERS"
                       : "TRANSFER PORTAL WATCH",
                 }),
                 (0, s.jsx)("h2", {
                   children:
-                    xl.length && xl.every((d) => d.kind === "follow")
+                    wbl.length && !pend.length
+                      ? wbl.length === 1
+                        ? `${wbl[0].name} withdrew from the portal and wants to come back`
+                        : `${wbl.length} players withdrew from the portal and want to come back`
+                      : xl.length && xl.every((d) => d.kind === "follow")
                       ? pend.length
                         ? "Some of your old players want to follow you"
                         : "Your former players"
@@ -10469,9 +10697,74 @@ function oc() {
                 (0, s.jsx)("p", {
                   children: pend.length
                     ? "You get one conversation with each. Offering extra NIL and promising a bigger role both improve your odds. The extra money is only spent if he stays."
-                    : "Everyone has made a decision.",
+                    : wbl.length
+                      ? "He found no offer he liked in the portal. Accept to take him back at his NIL, or deny it: then he signs with another school or leaves college basketball."
+                      : "Everyone has made a decision.",
                 }),
                 (0, s.jsx)(HowItWorks, { kind: "portal" }),
+                wbl.length > 0 &&
+                  (0, s.jsx)("div", {
+                    className: "lost-list wb-list",
+                    children: wbl.map((d) => {
+                      let open = 15 - e.roster.length,
+                        n = d.nil || 0,
+                        short = n > Ce(e);
+                      return (0, s.jsxs)(
+                        "div",
+                        {
+                          className: "lost-player",
+                          children: [
+                            (0, s.jsxs)("div", {
+                              children: [
+                                (0, s.jsxs)("strong", {
+                                  children: [d.name, " ", (0, s.jsxs)("span", { children: [d.ovr, " OVR"] })],
+                                }),
+                                (0, s.jsx)("p", { children: `${d.pos} · ${Zl(d)} · withdrew from the portal and wants to come back` }),
+                                (0, s.jsx)("small", {
+                                  children: `Asks ${q(n)} / yr · NIL available ${q(Ce(e))} · ${open} open roster spot${open === 1 ? "" : "s"}`,
+                                }),
+                                (short || open < 1) &&
+                                  (0, s.jsx)("small", {
+                                    className: "bad-text",
+                                    children: open < 1
+                                      ? " Your roster is full: deny him or open a spot first."
+                                      : ` Not enough NIL: his ${q(n)} does not fit in your ${q(Ce(e))}. Free up NIL or deny him.`,
+                                  }),
+                              ],
+                            }),
+                            (0, s.jsxs)("div", {
+                              className: "draft-actions",
+                              children: [
+                                (0, s.jsxs)("div", {
+                                  className: "row gap",
+                                  children: [
+                                    (0, s.jsx)(X, {
+                                      small: !0,
+                                      primary: !0,
+                                      disabled: short || open < 1,
+                                      onClick: () => {
+                                        Xe({ type: "wbDecision", id: d.id, accept: !0 });
+                                      },
+                                      children: "Accept",
+                                    }),
+                                    (0, s.jsx)(X, {
+                                      small: !0,
+                                      className: "cut-btn",
+                                      onClick: () => {
+                                        Xe({ type: "wbDecision", id: d.id, accept: !1 });
+                                      },
+                                      children: "Deny",
+                                    }),
+                                  ],
+                                }),
+                              ],
+                            }),
+                          ],
+                        },
+                        d.id
+                      );
+                    }),
+                  }),
                 (0, s.jsx)("div", {
                   className: "lost-list",
                   children: xl.map((d) => {
@@ -10588,7 +10881,7 @@ function oc() {
                   children: [
                     (0, s.jsx)(X, {
                       onClick: () => setXferOpen(!1),
-                      children: pend.length ? "Decide later" : "Close",
+                      children: pend.length || wbl.length ? "Decide later" : "Close",
                     }),
                     pend.length > 1 &&
                       (0, s.jsx)(X, {
@@ -12185,14 +12478,16 @@ function ZC({
                       onClick: ong,
                       children: ["Contract talks (", e.negs.length, ")"],
                     }),
-                  (e.xfers || []).some((d) => d.status === "pending") &&
+                  ((e.xfers || []).some((d) => d.status === "pending") ||
+                    e.prospects.some((d) => d.wb && d.status === "Available")) &&
                     (0, s.jsxs)(X, {
                       small: !0,
                       primary: !0,
                       onClick: oxf,
                       children: [
                         "Transfer decisions (",
-                        (e.xfers || []).filter((d) => d.status === "pending").length,
+                        (e.xfers || []).filter((d) => d.status === "pending").length +
+                          e.prospects.filter((d) => d.wb && d.status === "Available").length,
                         ")",
                       ],
                     }),
@@ -12969,8 +13264,8 @@ function GameDay({ g: e, run: run, onClose: onClose }) {
                               run({ type: "tactics", key: "tmo", value: z.target.value });
                             },
                             children: [
-                              ["Quick", "Call them early (after a 4-0 run)"],
-                              ["Normal", "Normal (after a 6-0 run)"],
+                              ["Quick", "Call them early (after a 3-0 run)"],
+                              ["Normal", "Normal (after a 4-0 run)"],
                               ["Save", "Save two for the finish"],
                             ].map((z) => (0, s.jsx)("option", { value: z[0], children: z[1] }, z[0])),
                           }),
@@ -15677,6 +15972,22 @@ function QC({ g: e, source: a, run: t, select: l }) {
           }),
         ],
       }),
+      // Item 58: the high school class waits for the portal window
+      a !== "Transfer" &&
+        e.phase === "Offseason" &&
+        hsLock(e) &&
+        (0, s.jsxs)("div", {
+          className: "callout hs-lock",
+          children: [
+            (0, s.jsx)(ja, { size: 24 }),
+            (0, s.jsxs)("p", {
+              children: [
+                (0, s.jsx)("strong", { children: HS_LOCK_MSG }),
+                ` The transfer portal window is open (wave ${e.pw} of 3). You can look at and bookmark high school recruits, but offers, scouting and official visits wait until the last portal wave is done.`,
+              ],
+            }),
+          ],
+        }),
       (0, s.jsxs)("div", {
         className: "toolbar wrap",
         children: [
@@ -16448,7 +16759,7 @@ function JC({ g: e, run: a, openBox: t }) {
                         }),
                         (0, s.jsx)("td", {
                           children:
-                            e.phase === "Offseason" && o < 12
+                            e.phase === "Offseason" && o < 12 && !evSecond(e, o)
                               ? (0, s.jsx)("select", {
                                   "aria-label": `Game ${o + 1} opponent`,
                                   value: u.oppId,
@@ -16471,6 +16782,8 @@ function JC({ g: e, run: a, openBox: t }) {
                                     e.rival &&
                                       u.oppId === e.rival.id &&
                                       (0, s.jsx)(he, { tone: "red", children: "RIVALRY" }),
+                                    u.bk && (0, s.jsx)("small", { className: "muted", style: { display: "block", fontWeight: 400 }, children: u.bk }),
+                                    evSecond(e, o) && !u.played && !u.bk && (0, s.jsx)("small", { className: "muted", style: { display: "block", fontWeight: 400 }, children: "Opponent set after game " + o + " (winners meet winners, losers meet losers)" }),
                                   ],
                                 }),
                         }),
@@ -17027,13 +17340,30 @@ function MarketRates(e, m) {
   });
 }
 
-function StaffPanel({ g: e, run: a }) {
+function StaffPanel({ g: e, run: a, hire: hire }) {
   let st = e.staff || {},
     open = e.phase === "Offseason",
-    LV = ["None", "Level 1", "Level 2", "Level 3"];
+    LV = ["None", "Level 1", "Level 2", "Level 3"],
+    pool = e.asstPool || W_asstPool(e),
+    // item 23: assistants are people with a rating; the level buttons set what you pay, the rating scales the perk (65 = the base perk)
+    levelButtons = (r) =>
+      [0, 1, 2, 3].map((lv) => {
+        let cur = st[r.k] || 0,
+          extra = W_staffLevelCost(e, r.k, lv) - W_staffLevelCost(e, r.k, cur);
+        return (0, s.jsx)(
+          X,
+          {
+            disabled: !open || lv === cur || extra > Ce(e) || (r.k !== "fac" && lv > 0 && !e.asst?.[r.k]),
+            title: extra > Ce(e) ? "Not enough available NIL" : "",
+            onClick: () => a({ type: "staff", key: r.k, level: lv }),
+            children: `${lv} \xB7 ${q(W_staffLevelCost(e, r.k, lv))}`,
+          },
+          lv
+        );
+      });
   return (0, s.jsxs)(s.Fragment, {
     children: [
-      (0, s.jsx)(qe, {
+      !hire && (0, s.jsx)(qe, {
         title: "Coaching staff and facilities",
         meta: `Staff and facilities cost ${q(W_staffCostOf(e))} a year, taken from your available NIL (${q(Ce(e))} available now). They can only be changed in the offseason.`,
         children: (0, s.jsx)("div", {
@@ -17042,39 +17372,83 @@ function StaffPanel({ g: e, run: a }) {
             children: [
               (0, s.jsx)("thead", {
                 children: (0, s.jsx)("tr", {
-                  children: ["ROLE", "NOW", "WHAT IT DOES", "SET LEVEL (YEARLY COST)"].map((z) =>
+                  children: ["ROLE", "WHO AND LEVEL", "WHAT IT DOES", "SET LEVEL (YEARLY COST)"].map((z) =>
                     (0, s.jsx)("th", { children: z }, z)
                   ),
                 }),
               }),
               (0, s.jsx)("tbody", {
-                children: STAFF_ROLES.map((r) =>
-                  (0, s.jsxs)(
+                children: STAFF_ROLES.map((r) => {
+                  let p = r.k === "fac" ? null : e.asst?.[r.k];
+                  return (0, s.jsxs)(
                     "tr",
                     {
                       children: [
                         (0, s.jsx)("td", { children: (0, s.jsx)("strong", { children: r.name }) }),
-                        (0, s.jsx)("td", { children: LV[st[r.k] || 0] }),
-                        (0, s.jsx)("td", { className: "muted", children: r.perk }),
                         (0, s.jsx)("td", {
-                          children: [0, 1, 2, 3].map((lv) => {
-                            let cur = st[r.k] || 0,
-                              extra = W_staffLevelCost(e, r.k, lv) - W_staffLevelCost(e, r.k, cur);
-                            return (0, s.jsx)(
-                              X,
-                              {
-                                disabled: !open || lv === cur || extra > Ce(e),
-                                title: extra > Ce(e) ? "Not enough available NIL" : "",
-                                onClick: () => a({ type: "staff", key: r.k, level: lv }),
-                                children: `${lv} \xB7 ${q(W_staffLevelCost(e, r.k, lv))}`,
-                              },
-                              lv
-                            );
-                          }),
+                          children:
+                            r.k === "fac"
+                              ? LV[st[r.k] || 0]
+                              : p
+                                ? `${p.name} \xB7 rating ${p.rating} \xB7 ${LV[st[r.k] || 0]} \xB7 ${p.yrs || 1} season${(p.yrs || 1) === 1 ? "" : "s"} here`
+                                : "Vacant (hire one on the Hire assistants tab)",
                         }),
+                        (0, s.jsx)("td", { className: "muted", children: r.perk }),
+                        (0, s.jsx)("td", { children: levelButtons(r) }),
                       ],
                     },
                     r.k
+                  );
+                }),
+              }),
+            ],
+          }),
+        }),
+      }),
+      hire && (0, s.jsx)(qe, {
+        title: "Assistant candidates",
+        meta: open
+          ? "Hire a named assistant at a level. A rating of 65 gives the plain perk, 85 about a third more, 45 about a third less. Better assistants cost more, and good ones can be hired away or leave for head jobs, so check this tab every offseason."
+          : "Hiring opens in the offseason.",
+        children: (0, s.jsx)("div", {
+          className: "table-wrap",
+          children: (0, s.jsxs)("table", {
+            children: [
+              (0, s.jsx)("thead", {
+                children: (0, s.jsx)("tr", {
+                  children: ["ROLE", "CANDIDATE", "RATING", "HIRE AT LEVEL (YEARLY COST)"].map((z) => (0, s.jsx)("th", { children: z }, z)),
+                }),
+              }),
+              (0, s.jsx)("tbody", {
+                children: ASST_ROLES.flatMap((k) =>
+                  (pool[k] || []).map((c) =>
+                    (0, s.jsxs)(
+                      "tr",
+                      {
+                        children: [
+                          (0, s.jsx)("td", { children: STAFF_ROLES.find((r) => r.k === k).name }),
+                          (0, s.jsx)("td", { children: c.name }),
+                          (0, s.jsx)("td", { children: c.rating }),
+                          (0, s.jsx)("td", {
+                            children: [1, 2, 3].map((lv) => {
+                              let extra =
+                                W_staffLevelCost(e, k, lv, c) - W_staffLevelCost(e, k, st[k] || 0, e.asst?.[k] || null);
+                              return (0, s.jsx)(
+                                X,
+                                {
+                                  disabled: !open || extra > Ce(e),
+                                  title: extra > Ce(e) ? "Not enough available NIL" : "",
+                                  onClick: () => a({ type: "hireAsst", key: k, id: c.id, level: lv }),
+                                  children: `${lv} \xB7 ${q(W_staffLevelCost(e, k, lv, c))}`,
+                                },
+                                lv
+                              );
+                            }),
+                          }),
+                        ],
+                      },
+                      c.id
+                    )
                   )
                 ),
               }),
@@ -17082,7 +17456,7 @@ function StaffPanel({ g: e, run: a }) {
           }),
         }),
       }),
-      (0, s.jsxs)("div", {
+      !hire && (0, s.jsxs)("div", {
         className: "callout",
         children: [
           (0, s.jsx)(ja, { size: 24 }),
@@ -17104,7 +17478,7 @@ function e0({ g: e, select: a, run: rn }) {
         className: "toolbar",
         children: (0, s.jsx)("div", {
           className: "chips",
-          children: ["Budget", "Revenue", "Market rates", "Staff"].map((d) =>
+          children: ["Budget", "Revenue", "Market rates", "Staff", "Hire assistants"].map((d) =>
             (0, s.jsx)(
               "button",
               { className: d === t ? "active" : "", onClick: () => setT(d), children: d },
@@ -17119,7 +17493,9 @@ function e0({ g: e, select: a, run: rn }) {
           ? (0, s.jsx)(RevenuePanel, { g: e })
           : t === "Staff"
             ? (0, s.jsx)(StaffPanel, { g: e, run: rn })
-            : (0, s.jsx)(MarketPanel, { g: e }),
+            : t === "Hire assistants"
+              ? (0, s.jsx)(StaffPanel, { g: e, run: rn, hire: !0 })
+              : (0, s.jsx)(MarketPanel, { g: e }),
     ],
   });
 }
@@ -17932,6 +18308,13 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
     [n, i] = (0, N.useState)("Overview"),
     [rsAsk, setRsAsk] = (0, N.useState)(null),
     [d, f] = (0, N.useState)(e.offer?.nil ?? (o ? e.ask : Math.max(e.ask, e.nil))),
+    // Item 57: the NIL boxes keep exactly what is typed (nilTxt) while d follows it in base dollars; leaving the box shows d again.
+    [nilTxt, setNilTxt] = (0, N.useState)(null),
+    nilBox = {
+      value: nilTxt ?? Math.round(d * MONEY),
+      onChange: (g) => (setNilTxt(g.target.value), f(Math.round(Number(g.target.value) / MONEY))),
+      onBlur: () => setNilTxt(null),
+    },
     [y, h] = (0, N.useState)(
       e.offer?.role || (o ? "Rotation" : e.promise === "None" ? "Rotation" : e.promise) || "Rotation"
     ),
@@ -18440,7 +18823,8 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
                                     a.phase !== "Offseason" ||
                                     a.round > 8 ||
                                     e.scouted >= 2 ||
-                                    a.scouts < 1,
+                                    a.scouts < 1 ||
+                                    hsLock(a, e),
                                   onClick: () => {
                                     t({ type: "scout", id: e.id });
                                   },
@@ -18454,7 +18838,8 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
                                       a.phase !== "Offseason" ||
                                       a.round > 8 ||
                                       !!e.ov ||
-                                      (a.ov ?? TUNE.ovisits) < 1,
+                                      (a.ov ?? TUNE.ovisits) < 1 ||
+                                      hsLock(a, e),
                                     title: "An official visit: he is fully scouted, his interest and progress jump and his chance to sign with you rises",
                                     onClick: () => {
                                       t({ type: "officialVisit", id: e.id });
@@ -18889,8 +19274,7 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
                                 type: "number",
                                 min: e.nil * MONEY,
                                 step: 1e3,
-                                value: Math.round(d * MONEY),
-                                onChange: (g) => f(Math.round(Number(g.target.value) / MONEY)),
+                                ...nilBox,
                               }),
                             ],
                           }),
@@ -19017,7 +19401,7 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
                 (0, s.jsx)(he, { tone: "orange", children: e.status }),
               ],
             }),
-            e.status === "Available" && a.phase === "Offseason" && a.round <= 9
+            e.status === "Available" && a.phase === "Offseason" && a.round <= 9 && !hsLock(a, e)
               ? (0, s.jsxs)(s.Fragment, {
                   children: [
                     (0, s.jsxs)("div", {
@@ -19031,8 +19415,7 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
                               type: "number",
                               min: 0,
                               step: 1e3,
-                              value: Math.round(d * MONEY),
-                              onChange: (g) => f(Math.round(Number(g.target.value) / MONEY)),
+                              ...nilBox,
                             }),
                             (0, s.jsxs)("small", {
                               className: Ce(a) + (e.offer?.nil || 0) - d < 0 ? "bad-text" : "good-text",
@@ -19119,7 +19502,9 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
                   children:
                     e.status === "Signed"
                       ? "This player has joined your program."
-                      : "Recruiting is closed for this player.",
+                      : e.status === "Available" && hsLock(a, e)
+                        ? HS_LOCK_MSG + " Finish the portal waves first (Advance portal wave)."
+                        : "Recruiting is closed for this player.",
                 }),
           ],
         }),
