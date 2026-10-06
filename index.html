@@ -732,6 +732,393 @@ button.table-expand:hover{border-color:var(--team,var(--orange));color:var(--ds-
   .lineup-selectors select{min-height:44px}
 }
 @media (max-width:999px){.modal .offer-footer{position:sticky;bottom:0;z-index:3;background:#131924;box-shadow:0 -12px 24px #000a}}
+
+/* ===== Look-and-feel stage 1 (items 1 to 3): broadcast identity. Visual only; no game numbers. ===== */
+:root{
+  /* condensed display face from system fonts only (no downloads) for headings, scores and big numbers */
+  --ds-font-display:"Avenir Next Condensed","HelveticaNeue-CondensedBold","Roboto Condensed","Arial Narrow","Franklin Gothic Medium",system-ui,sans-serif;
+  /* bolder type scale */
+  --ds-text-3xl:2.5rem;--ds-text-4xl:3.25rem;--ds-text-hero:4.5rem;
+  /* layering: card surfaces, inner borders, soft shadows */
+  --ds-card:linear-gradient(180deg,#171e2a 0%,#121721 100%);
+  --ds-card-hi:linear-gradient(180deg,#1d2634 0%,#151b27 100%);
+  --ds-inner:inset 0 1px 0 #ffffff12,inset 0 0 0 1px #ffffff06;
+  --ds-shadow-card:0 1px 2px #0008,0 10px 28px -12px #000c;
+  /* school accent family (all derived from --team, which each school sets) */
+  --ds-accent:var(--team,#f27935);
+  --ds-accent-text:color-mix(in srgb,var(--team,#f27935) 62%,#fff);
+  --ds-accent-soft:color-mix(in srgb,var(--team,#f27935) 16%,transparent);
+  --ds-accent-line:color-mix(in srgb,var(--team,#f27935) 45%,#2a3342);
+  --ds-accent-glow:color-mix(in srgb,var(--team,#f27935) 28%,transparent);
+}
+/* condensed display style */
+.page-heading h1,.section-head h2,.metric strong,.season-tag,.brand,.banner-copy h2,.hq-next h2,.modal h2,.ds-display{font-family:var(--ds-font-display);letter-spacing:.01em}
+.page-heading h1{font-size:2.1rem;font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+.section-head h2{font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:1.05rem}
+.metric strong{font-size:2.4rem;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}
+/* layered cards */
+.panel,.metric{background:var(--ds-card);box-shadow:var(--ds-inner),var(--ds-shadow-card);border-color:#262f3e}
+.panel>.section-head{box-shadow:inset 0 -1px 0 #ffffff08}
+.panel>.section-head h2:before{content:"";display:inline-block;width:4px;height:.95em;margin-right:.5em;border-radius:2px;vertical-align:-.1em;background:var(--ds-accent)}
+.metric.clickable:hover{border-color:var(--ds-accent-line);box-shadow:var(--ds-inner),var(--ds-shadow-card),0 0 0 1px var(--ds-accent-glow)}
+.metric>div:first-child svg{color:var(--ds-accent-text)}
+.metric>div:first-child span{font-weight:700;letter-spacing:.08em}
+/* buttons: a little lift and the school accent */
+.app-shell .btn.primary{box-shadow:var(--ds-inner),0 6px 16px -8px var(--ds-accent);font-weight:800;letter-spacing:.02em}
+.app-shell .btn:not(.primary){background:var(--ds-card-hi);box-shadow:var(--ds-inner)}
+/* badges, tabs */
+.badge{font-weight:800;letter-spacing:.06em}
+.ds-tabs button.active{background:var(--ds-accent-soft);color:var(--ds-accent-text);box-shadow:inset 0 -2px 0 var(--ds-accent)}
+/* tables */
+.ds-table th{font-family:var(--ds-font-display);letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(180deg,#141a25,#0f141d)}
+/* pop-ups */
+.modal{box-shadow:0 30px 120px #000c,var(--ds-inner),0 0 0 1px var(--ds-accent-glow)}
+.modal h2{font-weight:800;text-transform:uppercase}
+/* one icon style: 1.75 px round-cap strokes */
+svg[stroke="currentColor"]{stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:760px){.page-heading h1{font-size:1.6rem}.metric strong{font-size:1.9rem}}
+.section-head{flex-wrap:wrap}.section-head>div:first-child{min-width:0}.section-head h2{overflow-wrap:anywhere}
+/* END of stage 1 item 1 styles */
+
+/* ===== item 2: sidebar and score-bug header ===== */
+.sidebar{background:linear-gradient(180deg,color-mix(in srgb,var(--team) 9%,#0e1219) 0,#0e1219 260px);box-shadow:inset -1px 0 0 #ffffff0a}
+.sidebar .brand{font-size:1rem;gap:8px;opacity:.9}
+.sidebar .brand-mark{width:26px;height:26px}
+.sidebar .brand span{font-size:.62rem;letter-spacing:.14em}
+.program-mini.crest-hero{margin-top:12px;padding:14px 10px 12px;flex-direction:column;align-items:center;gap:8px;text-align:center;border-radius:14px;background:radial-gradient(120% 90% at 50% 0%,var(--ds-accent-glow),transparent 70%),var(--ds-card);border-color:var(--ds-accent-line);box-shadow:var(--ds-inner),var(--ds-shadow-card)}
+.crest-big{width:84px;height:84px;filter:drop-shadow(0 6px 14px #000a)}
+.crest-name strong{font-family:var(--ds-font-display);font-size:1.2rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;line-height:1.1}
+.crest-name span{font-size:.72rem!important;letter-spacing:.14em;text-transform:uppercase;color:var(--ds-accent-text)!important}
+.sidebar nav button.active{background:linear-gradient(90deg,var(--ds-accent-soft),transparent);box-shadow:inset 4px 0 0 var(--team);font-weight:800}
+.sidebar nav button.active>svg{color:var(--ds-accent-text)}
+.sidebar nav button:not(.active):hover{box-shadow:inset 2px 0 0 var(--ds-accent-line)}
+.coach-block{margin:auto 0 0;padding:10px;border-radius:12px;border:1px solid #262f3e;background:var(--ds-card);box-shadow:var(--ds-inner);gap:10px}
+.coach-block:hover{border-color:var(--ds-accent-line)}
+.coach-initial{background:var(--team);color:var(--on-team,#10131a);font-family:var(--ds-font-display);font-weight:800;font-size:1.15rem;width:38px;height:38px;flex:none}
+.coach-block em{display:block;font-style:normal;font-size:.62rem;letter-spacing:.14em;font-weight:800;color:var(--ds-text-faint)}
+.coach-block strong{font-size:.95rem;line-height:1.15}
+.coach-block span{font-size:.78rem}
+.topbar{height:58px;background:linear-gradient(180deg,#0f141d,#0b0e14);box-shadow:0 1px 0 var(--ds-accent-line),0 8px 20px -14px #000}
+.score-bug{display:inline-flex;align-items:stretch;border-radius:8px;overflow:hidden;border:1px solid var(--ds-accent-line);background:var(--ds-card);box-shadow:var(--ds-inner),0 4px 14px -6px #000;min-width:0;max-width:100%}
+.score-bug>span{display:flex;align-items:center;padding:5px 12px;white-space:nowrap}
+.score-bug .season-tag{background:var(--team);color:var(--on-team,#10131a);font-size:1.05rem;font-weight:800;letter-spacing:.06em}
+.score-bug .bug-phase{font-family:var(--ds-font-display);font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ds-text);font-size:.95rem}
+.score-bug .bug-record{gap:8px;font-family:var(--ds-font-display);font-weight:800;font-size:1.15rem;color:var(--ds-accent-text);background:#ffffff0a;font-variant-numeric:tabular-nums}
+.score-bug .bug-record small{font-size:.6rem;letter-spacing:.14em;color:var(--ds-text-faint);font-weight:800}
+@media (max-width:760px){.score-bug>span{padding:4px 7px}.score-bug .season-tag{font-size:.85rem}.score-bug .bug-phase{font-size:.75rem}.score-bug .bug-record{font-size:.95rem}.score-bug .bug-record small{display:none}.crest-big{width:64px;height:64px}}
+@media (max-height:900px){
+  .crest-big{width:52px;height:52px}
+  .program-mini.crest-hero{margin-top:8px;padding:8px;gap:4px}
+  .crest-name strong{font-size:1rem}
+  .sidebar .brand{margin-bottom:0}
+  .nav-label{margin:10px 12px 4px}
+  .coach-block{padding:6px 8px}
+  .coach-initial{width:30px;height:30px}
+}
+@media (max-height:900px) and (pointer:fine){.sidebar nav button{min-height:34px;padding-top:5px;padding-bottom:5px}}
+@media (max-height:760px){.crest-big{width:40px;height:40px}.program-mini.crest-hero{padding:6px}.crest-name span{display:none}}
+
+/* ===== item 3: Program HQ hero, matchup card, season timeline, stats strip ===== */
+.hq-banner{background:radial-gradient(60% 140% at 92% 40%,var(--ds-accent-glow),transparent 70%),linear-gradient(120deg,#1b2230 0%,#141923 62%,color-mix(in srgb,var(--team) 22%,#141923) 100%);box-shadow:var(--ds-inner),var(--ds-shadow-card);border-color:var(--ds-accent-line)}
+.banner-copy h2{font-weight:800;text-transform:uppercase;letter-spacing:.02em;line-height:1}
+.banner-emblem>div.emblem-logo{width:8.5rem;height:8.5rem;filter:drop-shadow(0 10px 24px #000b)}
+.hq-bigrecord{display:flex;align-items:baseline;gap:12px;margin:6px 0 2px}
+.hq-bigrecord b{font-family:var(--ds-font-display);font-size:var(--ds-text-4xl);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;color:var(--ds-text)}
+.hq-bigrecord span{font-size:.7rem;font-weight:800;letter-spacing:.16em;color:var(--ds-accent-text)}
+.hq-next{box-shadow:var(--ds-inner),var(--ds-shadow-card),inset 4px 0 0 var(--team,var(--orange))}
+.hq-next.ready{box-shadow:var(--ds-inner),var(--ds-shadow-card),inset 4px 0 0 var(--ds-good)}
+.hq-next h2{font-weight:800;text-transform:uppercase}
+/* matchup card */
+.hq-matchup{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:var(--ds-space-3);width:100%}
+.hq-side{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;text-align:center}
+.hq-side strong{font-family:var(--ds-font-display);font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:.02em;line-height:1.1;overflow-wrap:anywhere}
+.hq-side span{font-size:.8rem;color:var(--ds-text-muted);font-variant-numeric:tabular-nums}
+.hq-logo{width:72px;height:72px;filter:drop-shadow(0 6px 12px #000a)}
+.hq-vs{font-family:var(--ds-font-display);font-weight:800;font-size:1.4rem;letter-spacing:.08em;color:var(--ds-text-faint)}
+.hq-chance{grid-column:1/-1;margin-top:var(--ds-space-2)}
+.hq-chance-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hq-chance-top b{font-family:var(--ds-font-display);font-size:1.6rem;font-weight:800;color:var(--ds-accent-text);font-variant-numeric:tabular-nums}
+.hq-chance-top b.opp{color:var(--ds-text-muted)}
+.hq-chance-top span{font-size:.62rem;font-weight:800;letter-spacing:.14em;color:var(--ds-text-faint);text-align:center}
+.hq-chance-bar{height:10px;border-radius:var(--ds-radius-pill);background:#2a3342;overflow:hidden}
+.hq-chance-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,color-mix(in srgb,var(--team) 70%,#000),var(--team))}
+.hq-kind{grid-column:1/-1;margin:0;text-align:center;font-size:.8rem;color:var(--ds-text-muted)}
+/* season timeline: one chip per game */
+.hq-timeline{display:flex;align-items:center;gap:var(--ds-space-4);flex-wrap:wrap;padding:var(--ds-space-3) var(--ds-space-4);border-radius:var(--ds-radius-lg);border:1px solid #262f3e;background:var(--ds-card);box-shadow:var(--ds-inner),var(--ds-shadow-card)}
+.hq-strip-title{font-size:.68rem;font-weight:800;letter-spacing:.16em;color:var(--ds-text-faint)}
+.hq-chips{display:flex;flex-wrap:wrap;gap:4px;flex:1 1 300px;min-width:0}
+.hq-chip{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 4px;border-radius:6px;font-family:var(--ds-font-display);font-weight:800;font-size:.8rem;border:1px solid transparent}
+.hq-chip.w{background:color-mix(in srgb,var(--ds-good) 22%,#121721);color:var(--ds-good);border-color:color-mix(in srgb,var(--ds-good) 55%,transparent)}
+.hq-chip.l{background:color-mix(in srgb,var(--ds-bad) 22%,#121721);color:var(--ds-bad);border-color:color-mix(in srgb,var(--ds-bad) 55%,transparent)}
+.hq-chip.todo{color:var(--ds-text-faint);border-color:#2f3a4c;font-weight:600}
+.hq-chip.conf{box-shadow:inset 0 -3px 0 var(--ds-accent-line)}
+button.hq-chip{cursor:pointer}
+button.hq-chip:hover{filter:brightness(1.25)}
+/* stats strip */
+.hq-stats{display:grid;grid-template-columns:repeat(5,1fr);border-radius:var(--ds-radius-lg);border:1px solid #262f3e;background:var(--ds-card);box-shadow:var(--ds-inner),var(--ds-shadow-card);overflow:hidden}
+.hq-stat{display:flex;flex-direction:column;align-items:center;padding:var(--ds-space-3) var(--ds-space-2);min-width:0}
+.hq-stat+.hq-stat{border-left:1px solid #ffffff0d}
+.hq-stat b{font-family:var(--ds-font-display);font-size:var(--ds-text-3xl);font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}
+.hq-stat span{font-size:.62rem;font-weight:800;letter-spacing:.14em;color:var(--ds-text-faint);text-align:center}
+@media (max-width:760px){.hq-bigrecord b{font-size:2.4rem}.hq-stat b{font-size:1.6rem}.hq-stat span{font-size:.5rem;letter-spacing:.06em}.hq-logo{width:52px;height:52px}.hq-side strong{font-size:.9rem}.hq-stats{grid-template-columns:repeat(5,1fr)}}
+@media (max-height:760px){.banner-emblem>div.emblem-logo{width:5.5rem;height:5.5rem}.hq-bigrecord b{font-size:2.4rem}.hq-stat b{font-size:1.7rem}}
+
+/* ===== item 4: roster cards and the trading-card profile ===== */
+/* rating ring */
+.ds-ring{position:relative;display:inline-grid;place-items:center;width:46px;height:46px;flex:none}
+.ds-ring svg{position:absolute;inset:0;width:100%;height:100%}
+.ds-ring-track{fill:#0b0e14d9;stroke:#2a3342;stroke-width:9}
+.ds-ring-fill{fill:none;stroke:var(--ds-info);stroke-width:9;stroke-linecap:round;transition:stroke-dasharray var(--ds-slow) var(--ds-ease)}
+.ds-ring.great .ds-ring-fill{stroke:var(--ds-good)}.ds-ring.ok .ds-ring-fill{stroke:var(--ds-warn)}.ds-ring.low .ds-ring-fill{stroke:var(--ds-bad)}
+.ds-ring.range .ds-ring-fill{stroke-dasharray:6 6!important;opacity:.8}
+.ds-ring b{position:relative;display:flex;flex-direction:column;align-items:center;font-family:var(--ds-font-display);font-weight:800;font-size:1.05rem;line-height:1;color:var(--ds-text);font-variant-numeric:tabular-nums}
+.ds-ring b small{font-size:.42rem;letter-spacing:.12em;color:var(--ds-text-muted);margin-top:1px}
+.ds-ring.range b{font-size:.62rem}
+.ds-ring.big{width:92px;height:92px}
+.ds-ring.big b{font-size:2rem}.ds-ring.big b small{font-size:.55rem}.ds-ring.big.range b{font-size:1rem}
+/* roster cards: bigger photo, the ring sits on it */
+.player-card{background:var(--ds-card);border-color:#2b3445;box-shadow:var(--ds-inner),var(--ds-shadow-card)}
+.player-card:hover{border-color:var(--ds-accent-line)}
+.card-image .overall.ring-holder,.player-card:has(.ds-bar) .card-image .overall.ring-holder{display:block;padding:0;background:none;top:6px;right:6px;bottom:auto;transform:none;line-height:0}
+.card-image{background:radial-gradient(90% 90% at 50% 100%,var(--ds-accent-soft),transparent 75%),#1c2330}
+.player-card .card-body>.ds-bar{display:none}
+.player-card .card-body h3{font-family:var(--ds-font-display);font-weight:800;letter-spacing:.02em;text-transform:uppercase}
+.arch-tag{align-self:flex-start;display:inline-block;max-width:100%;margin:2px 0;padding:0 7px;border-radius:var(--ds-radius-pill);font-size:.68rem;font-weight:700;letter-spacing:.04em;color:var(--ds-info);background:color-mix(in srgb,var(--ds-info) 14%,transparent);border:1px solid color-mix(in srgb,var(--ds-info) 35%,transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (min-width:761px){
+  .roster-grid .card-image,.core-grid .card-image{width:112px;height:auto;min-height:112px;aspect-ratio:auto}
+  .roster-grid .card-image .portrait,.core-grid .card-image .portrait{width:100%;height:100%}
+  .roster-grid .overall.ring-holder,.core-grid .overall.ring-holder{top:auto;bottom:4px;right:4px}
+  .roster-grid .ds-ring,.core-grid .ds-ring{width:40px;height:40px}
+  .roster-grid .ds-ring b,.core-grid .ds-ring b{font-size:.95rem}
+  .roster-grid .ds-ring b small,.core-grid .ds-ring b small{display:none}
+}
+/* trading-card profile header */
+.profile-top.trading-card{position:relative;border-radius:var(--ds-radius-xl);border:1px solid var(--ds-accent-line);background:radial-gradient(70% 120% at 0% 0%,var(--ds-accent-glow),transparent 65%),linear-gradient(115deg,#232c3b,#151b26);box-shadow:var(--ds-inner),var(--ds-shadow-card)}
+.modal .profile-top.trading-card .portrait.large,.profile-top.trading-card .portrait.large{width:128px!important;height:128px!important;border:2px solid var(--ds-accent-line);border-radius:var(--ds-radius-lg);box-shadow:0 10px 24px -8px #000}
+.profile-top.trading-card .profile-title h2{font-family:var(--ds-font-display);font-weight:800;text-transform:uppercase;letter-spacing:.02em;font-size:2rem;line-height:1.05}
+.profile-top.trading-card .profile-title .row{flex-wrap:wrap}
+.profile-top.trading-card .profile-overall{display:block;margin-left:auto;margin-right:36px}
+@media (max-height:820px){.modal .profile-top.trading-card .portrait.large{width:108px!important;height:108px!important}}
+.attributes-grid>div{padding:var(--ds-space-3);border-radius:var(--ds-radius-lg);border:1px solid #262f3e;background:var(--ds-card);box-shadow:var(--ds-inner)}
+.attr-group-head{font-family:var(--ds-font-display);font-weight:800;letter-spacing:.1em;color:var(--ds-accent-text)}
+.attributes-grid .attribute{margin-bottom:9px}
+.attributes-grid .meter{height:7px;border-radius:var(--ds-radius-pill)}
+@media (max-width:760px){
+  .profile-top.trading-card{gap:10px}
+  .modal .profile-top.trading-card .portrait.large,.profile-top.trading-card .portrait.large{width:84px!important;height:84px!important}
+  .profile-top.trading-card .profile-title h2{font-size:1.35rem}
+  .profile-top.trading-card .profile-overall{display:block;margin-right:0}
+  .ds-ring.big{width:60px;height:60px}.ds-ring.big b{font-size:1.3rem}.ds-ring.big.range b{font-size:.7rem}
+  .roster-grid .overall.ring-holder{top:auto;bottom:2px;right:2px}
+  .roster-grid .ds-ring{width:34px;height:34px}.roster-grid .ds-ring b{font-size:.8rem}.roster-grid .ds-ring b small{display:none}
+}
+
+/* ===== item 5: recruiting tables and the recruit profile ===== */
+/* star badges: gold pill that reads at a glance, richer the more stars */
+.stars{color:#f5c542}
+.stars .dim{color:#5a6577}
+.prospect-table .stars{display:inline-flex;align-items:center;gap:1px;padding:2px 6px;border-radius:var(--ds-radius-pill);background:#f5c54214;border:1px solid #f5c54233}
+.prospect-table .stars.star-5{background:linear-gradient(90deg,#f5c54238,#f5c54218);border-color:#f5c542aa;box-shadow:0 0 10px -2px #f5c54288}
+.prospect-table .stars.star-4{border-color:#f5c54277}
+.prospect-table .stars.star-0{color:var(--ds-text-faint);background:#ffffff0d;border-color:#ffffff1f}
+/* bigger photos and ring in the table */
+@media (min-width:761px){
+  .prospect-table .portrait.tiny{width:54px;height:54px}
+  .prospect-table .rating-inline .ds-ring{width:42px;height:42px}
+  .prospect-table .rating-inline .ds-ring b{font-size:.95rem}
+  .prospect-table .rating-inline .ds-ring b small{display:none}
+  .prospect-table .player-cell strong{font-family:var(--ds-font-display);font-weight:800;letter-spacing:.02em;text-transform:uppercase;font-size:1.02rem}
+}
+@media (min-width:761px) and (max-width:1250px){
+  .prospect-table .portrait.tiny{width:42px;height:42px}
+  .prospect-table .rating-inline .ds-ring{width:36px;height:36px}
+  .prospect-table .player-cell strong{font-size:.9rem}
+  .prospect-table .stars{padding:1px 3px}
+  .prospect-table .pitch-tag{font-size:.6rem;padding:0 4px}
+  .prospect-table .stars svg{width:9px;height:9px}
+  .prospect-table td:first-child,.prospect-table td:first-child .player-cell span{white-space:normal}
+  .prospect-table .player-cell{gap:6px}
+}
+@media (min-width:761px) and (max-width:1100px){
+  .prospect-table .portrait.tiny{width:36px;height:36px}
+  .prospect-table .rating-inline .ds-ring{width:32px;height:32px}
+  .prospect-table .rating-inline .ds-ring b{font-size:.8rem}
+  .prospect-table .stars{padding:1px 2px;gap:0}
+  .prospect-table .stars svg{width:8px;height:8px}
+}
+@media (max-width:760px){.prospect-table .rating-inline .ds-ring{width:26px;height:26px}.prospect-table .rating-inline .ds-ring b{font-size:.55rem}.prospect-table .rating-inline .ds-ring b small{display:none}}
+.prospect-table tr.row-target{box-shadow:inset 3px 0 0 var(--ds-accent)}
+/* rival and pitch indicators */
+.rival-tag{font-weight:800;letter-spacing:.02em}
+.rival-tag.you:before{content:"\25B2\00a0"}
+.rival-tag.them:before{content:"\25BC\00a0"}
+.pitch-tag{display:inline-block;margin-top:3px;padding:0 6px;border-radius:var(--ds-radius-pill);font-size:.68rem;font-weight:800;letter-spacing:.04em;color:var(--ds-accent-text);background:var(--ds-accent-soft);border:1px solid var(--ds-accent-line);white-space:nowrap}
+/* recruit profile summary strip */
+.rp-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;margin:var(--ds-space-3) 0;border-radius:var(--ds-radius-lg);overflow:hidden;border:1px solid #262f3e;background:#262f3e;box-shadow:var(--ds-inner)}
+.rp-strip-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:var(--ds-space-3) var(--ds-space-2);background:var(--ds-card);min-width:0;text-align:center}
+.rp-strip-item b{font-family:var(--ds-font-display);font-size:1.7rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.rp-strip-item span{font-size:.6rem;font-weight:800;letter-spacing:.14em;color:var(--ds-text-faint)}
+.rp-strip-item.chance .ds-ring{width:64px;height:64px}
+.rp-strip-item.chance .ds-ring b{font-size:1.15rem;flex-direction:row;align-items:baseline}
+.rp-strip-item.chance .ds-ring b small{display:none}
+.ds-ring.range b{white-space:nowrap;font-size:.6rem!important;letter-spacing:-.02em}
+.ds-ring.range.big b{font-size:.95rem!important}
+.ds-ring.range b small{display:none}
+.recruit-profile{border-radius:var(--ds-radius-lg);border:1px solid #262f3e;background:var(--ds-card);box-shadow:var(--ds-inner)}
+.recruit-profile>h3{font-family:var(--ds-font-display);text-transform:uppercase;letter-spacing:.08em;color:var(--ds-accent-text)}
+
+/* ===== item 6: Game Day broadcast scoreboard, momentum, feed icons, halftime panel ===== */
+.gd-board{position:relative;row-gap:var(--ds-space-3);background:linear-gradient(90deg,color-mix(in srgb,var(--team,var(--orange)) 30%,#121721) 0%,#0f141d 38%,#0f141d 62%,color-mix(in srgb,var(--opp,#9aa3b5) 26%,#121721) 100%);box-shadow:var(--ds-inner),var(--ds-shadow-card);border-color:#2c3648;overflow:hidden}
+.gd-board:before,.gd-board:after{content:"";position:absolute;top:0;bottom:0;width:5px}
+.gd-board:before{left:0;background:var(--team,var(--orange))}
+.gd-board:after{right:0;background:var(--opp,#9aa3b5)}
+.gd-team{flex-direction:row;align-items:center;gap:var(--ds-space-3)}
+.gd-team.us{justify-content:flex-start}
+.gd-team.them{justify-content:flex-end}
+.gd-team-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.gd-team.us .gd-team-txt{align-items:flex-start}
+.gd-team.them .gd-team-txt{align-items:flex-end}
+.gd-team-txt span{font-family:var(--ds-font-display);text-transform:uppercase;letter-spacing:.04em;font-weight:800;max-width:100%;overflow-wrap:anywhere;white-space:normal}
+.gd-team strong{font-family:var(--ds-font-display)}
+.gd-team.them strong{color:color-mix(in srgb,var(--opp,#9aa3b5) 70%,#fff)}
+.gd-logo{width:64px;height:64px;flex:none;filter:drop-shadow(0 6px 12px #000a)}
+.gd-clock{gap:2px}
+.gd-clock b{font-family:var(--ds-font-display);font-weight:800}
+.gd-shot{display:inline-flex;align-items:center;gap:6px;margin-top:2px;padding:1px 8px;border-radius:6px;background:#1b0f0f;border:1px solid #f4808755;color:#ff6b6b;font-family:var(--ds-font-display);font-weight:800;font-size:1.05rem;font-variant-numeric:tabular-nums}
+.gd-shot i{font-style:normal;font-size:.55rem;letter-spacing:.14em;color:var(--ds-text-muted)}
+.gd-mom{grid-column:1/-1;display:flex;align-items:center;gap:var(--ds-space-3)}
+.gd-mom span{font-size:.6rem;font-weight:800;letter-spacing:.16em;color:var(--ds-text-faint)}
+.gd-mom-bar{position:relative;flex:1;height:8px;border-radius:var(--ds-radius-pill);background:var(--opp,#9aa3b5);overflow:hidden}
+.gd-mom-bar:after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:#0b0e14}
+.gd-mom-bar i{display:block;height:100%;background:var(--team,var(--orange));transition:width var(--ds-base) var(--ds-ease)}
+/* feed icons */
+.gd-feed .gd-play{display:flex;align-items:center;gap:8px;min-width:0}
+.gd-ico{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:20px;padding:0 4px;border-radius:5px;font-style:normal;font-size:.68rem;font-weight:800;font-family:var(--ds-font-display);background:#ffffff0f;color:var(--ds-text-muted);border:1px solid #ffffff1a}
+.gd-ico.make{background:color-mix(in srgb,var(--ds-good) 20%,transparent);color:var(--ds-good);border-color:color-mix(in srgb,var(--ds-good) 50%,transparent)}
+.gd-ico.miss{color:var(--ds-bad);border-color:color-mix(in srgb,var(--ds-bad) 45%,transparent)}
+.gd-ico.foul{background:color-mix(in srgb,var(--ds-warn) 16%,transparent);color:var(--ds-warn);border-color:color-mix(in srgb,var(--ds-warn) 45%,transparent)}
+.gd-ico.tmo{background:color-mix(in srgb,var(--ds-info) 18%,transparent);color:var(--ds-info);border-color:color-mix(in srgb,var(--ds-info) 45%,transparent)}
+.gd-ico.tov{color:#f0a36b;border-color:#f0a36b66}
+/* halftime / timeout panel */
+.gd-half-panel{margin-top:var(--ds-space-3);padding:var(--ds-space-2) var(--ds-space-4) var(--ds-space-4);border-radius:var(--ds-radius-lg);border:1px solid color-mix(in srgb,var(--ds-warn) 45%,#2c3648);background:linear-gradient(180deg,#2a241226,transparent 70%),var(--ds-card);box-shadow:var(--ds-inner),inset 0 3px 0 var(--ds-warn)}
+.gd-half-panel.timeout{border-color:color-mix(in srgb,var(--ds-info) 45%,#2c3648);box-shadow:var(--ds-inner),inset 0 3px 0 var(--ds-info)}
+.gd-half-panel>h3{font-family:var(--ds-font-display);font-weight:800;font-size:1.15rem;letter-spacing:.02em}
+@media (max-width:760px){
+  .gd-logo{width:34px;height:34px}
+  .gd-team{gap:6px}
+  .gd-team-txt span{font-size:.7rem}
+  .gd-shot{font-size:.85rem;padding:0 5px}
+  .gd-ico{min-width:20px;height:18px;font-size:.6rem}
+}
+@media (max-width:1100px) and (min-width:761px){.gd-logo{width:48px;height:48px}}
+
+/* ===== item 7: bracket logos and seeds, ranking rows, bubble watch ===== */
+.bt-game{width:172px;box-shadow:var(--ds-inner),var(--ds-shadow-1);background:var(--ds-card)}
+.bt-compact .bt-game{width:122px}
+.bt-team span{display:flex;align-items:center;gap:4px;min-width:0}
+.bt-logo{flex:none;display:inline-block;width:14px;height:14px}
+.bt-compact .bt-logo{width:11px;height:11px}
+.bt-team .seed{flex:none;font-style:normal;font-weight:800;font-size:.9em;min-width:1.3em;text-align:center;border-radius:4px;background:#ffffff14;color:var(--ds-text-2);padding:0 2px}
+.bt-team.win{background:color-mix(in srgb,var(--ds-good) 10%,transparent);color:var(--ds-text)}
+.bt-team.me{background:var(--ds-accent-soft);color:var(--ds-accent-text)}
+.bt-col h4{font-family:var(--ds-font-display);text-transform:uppercase;letter-spacing:.1em;color:var(--ds-accent-text)}
+.champ-line{font-family:var(--ds-font-display);text-transform:uppercase;letter-spacing:.06em}
+.champ-line strong{color:var(--ds-accent-text)}
+/* ranking rows: logo beside the team, colored move arrows */
+.team-cell{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.team-logo{flex:none;display:inline-block;width:26px;height:26px;filter:drop-shadow(0 2px 4px #0009)}
+.move-arrow{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.move-arrow.up{color:var(--ds-good)}.move-arrow.down{color:var(--ds-bad)}
+@media (max-width:760px){.team-logo{width:16px;height:16px}.team-cell{gap:4px}}
+/* bubble watch */
+.team-card h4{font-family:var(--ds-font-display);text-transform:uppercase;letter-spacing:.1em;font-size:.85rem;margin-bottom:6px}
+.team-card{background:var(--ds-card);box-shadow:var(--ds-inner)}
+.team-card.bubble-in{box-shadow:var(--ds-inner),inset 0 3px 0 var(--ds-good)}
+.team-card.bubble-out{box-shadow:var(--ds-inner),inset 0 3px 0 var(--ds-bad)}
+.team-row{align-items:center}
+.team-row .team-logo{width:20px;height:20px}
+.team-row.you{background:var(--ds-accent-soft);border-radius:6px;padding-left:6px;padding-right:6px}
+.team-row small{font-family:var(--ds-font-display);font-weight:800;font-size:.9rem;font-variant-numeric:tabular-nums}
+
+/* ===== item 8: NIL budget, League news, Coaching, Career history, Settings: the same look everywhere ===== */
+/* every tab row (Tabs, Settings, NIL budget, League news, History): school-colored active tab, wraps onto a second row */
+.chips{flex-wrap:wrap;max-width:100%;border-color:#262f3e;background:var(--ds-card);box-shadow:var(--ds-inner)}
+.chips button.active{background:var(--ds-accent-soft);color:var(--ds-accent-text);box-shadow:inset 0 -2px 0 var(--ds-accent);font-weight:800}
+.chips button{font-family:var(--ds-font-display);letter-spacing:.04em;font-size:1rem}
+/* big numbers: stat boxes, summary tiles, revenue and history figures */
+.stat-trio>div{border-radius:var(--ds-radius-lg);border:1px solid #262f3e;background:var(--ds-card);box-shadow:var(--ds-inner)}
+.stat-trio small{font-weight:800;letter-spacing:.14em;color:var(--ds-text-faint)}
+.stat-trio strong{font-family:var(--ds-font-display);font-weight:800;font-size:1.7rem;font-variant-numeric:tabular-nums}
+.stat-trio .bar>div,.meter span{background:linear-gradient(90deg,color-mix(in srgb,var(--team) 70%,#000),var(--team))}
+/* settings rows and callouts */
+.setting-row,.callout{border-radius:var(--ds-radius-md)}
+.callout{background:var(--ds-card);border-color:var(--ds-accent-line);box-shadow:var(--ds-inner)}
+/* tables inside panels get the broadcast header on every page */
+.table-wrap th{font-family:var(--ds-font-display);letter-spacing:.08em;text-transform:uppercase}
+.table-wrap td strong{font-variant-numeric:tabular-nums}
+.panel .section-head p{color:var(--ds-text-muted)}
+@media (max-width:760px){.chips button{font-size:.9rem}.stat-trio strong{font-size:1.3rem}}
+
+/* ===== item 9: motion, loading and empty states, pop-ups ===== */
+/* pages and cards slide up a few pixels when they open (movement only, never hides content) */
+@keyframes dsRise{from{transform:translateY(6px)}to{transform:none}}
+.main>*{animation:dsRise var(--ds-slow) var(--ds-ease) backwards}
+.hq-chip,.hq-stat,.ds-ring-fill,.gd-mom-bar i,.hq-chance-bar i{transition:all var(--ds-base) var(--ds-ease)}
+.hq-chip.todo{animation:none}
+/* empty states: a framed card with a soft glow, not a bare line of text */
+.empty{border-radius:var(--ds-radius-lg);border:1px dashed var(--ds-accent-line);background:radial-gradient(70% 100% at 50% 0%,var(--ds-accent-glow),transparent 70%),var(--ds-card)}
+.empty h3{font-family:var(--ds-font-display);text-transform:uppercase;letter-spacing:.08em;margin:8px 0 4px}
+.empty svg{color:var(--ds-accent-text)}
+/* loading: the start-up spinner uses the accent and a pulsing logo */
+.boot-spin{border-top-color:var(--ds-accent,#f27935)}
+@keyframes dsPulse{50%{opacity:.55}}
+.boot-spin+h1{animation:dsPulse 1.6s ease-in-out infinite}
+.saving,.save-status svg.spin{color:var(--ds-accent-text)}
+/* pop-ups: same card look, a header rule in the school color, close button that shows on hover */
+.modal-backdrop{backdrop-filter:blur(3px)}
+.modal .section-head,.modal .ceremony-head{box-shadow:inset 0 -1px 0 #ffffff0d}
+.modal .icon-btn.close:hover{background:var(--ds-accent-soft);color:var(--ds-accent-text)}
+.ceremony-foot,.offer-footer{background:linear-gradient(180deg,transparent,#0b0e1466)}
+/* finger-sized targets stay 44 px (the timeline chips are buttons; selects in panel headers) */
+@media (pointer:coarse){button.hq-chip{min-height:44px;min-width:44px}.main select,.panel select{min-height:44px}}
+@media (prefers-reduced-motion:reduce){
+  .main>*,.boot-spin+h1{animation:none!important}
+  .hq-chip,.hq-stat,.ds-ring-fill,.gd-mom-bar i,.hq-chance-bar i{transition:none!important}
+}
+
+/* Favorite former players */
+.fav-star{background:none;border:0;padding:0 6px;font-size:1.25rem;line-height:1;cursor:pointer;color:var(--ds-text-muted);min-width:32px}
+.fav-star.on{color:var(--ds-warn)}
+.fav-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 18px}
+.fav-search{display:block;width:100%;max-width:360px;margin:8px 0 12px}
+@media (pointer:coarse){.fav-star{min-width:44px;min-height:44px}}
+
+/* ===== Sidebar always fits: sizes follow the window height (no scroll bar, nothing hidden) ===== */
+@media (min-width:1000px){
+  .app-shell .sidebar{overflow:visible;padding:clamp(6px,1.6vh,18px) 12px clamp(6px,1.4vh,14px)}
+  .app-shell .sidebar nav{overflow:visible;flex:none;min-height:0;gap:clamp(1px,.3vh,3px)}
+  .app-shell .sidebar nav button{min-height:clamp(26px,4.1vh,38px);height:clamp(26px,4.1vh,38px);padding-top:0;padding-bottom:0;gap:clamp(7px,1.2vh,10px);font-size:clamp(.78rem,1.75vh,.95rem)}
+  .app-shell .sidebar nav button>svg{width:clamp(13px,2.1vh,17px);height:clamp(13px,2.1vh,17px);flex:none}
+  .app-shell .sidebar .brand{font-size:clamp(.8rem,1.9vh,1rem)}
+  .app-shell .sidebar .brand-mark{width:clamp(18px,3.2vh,26px);height:clamp(18px,3.2vh,26px)}
+  .app-shell .sidebar .brand span{font-size:clamp(.5rem,.9vh,.62rem);margin-top:1px}
+  .app-shell .program-mini.crest-hero{margin-top:clamp(4px,1.2vh,12px);padding:clamp(4px,1.1vh,12px) 10px;gap:clamp(2px,.6vh,8px)}
+  .app-shell .crest-big{width:clamp(30px,7.5vh,84px);height:clamp(30px,7.5vh,84px)}
+  .app-shell .crest-name strong{font-size:clamp(.8rem,1.9vh,1.2rem)}
+  .app-shell .nav-label{margin:clamp(4px,1.1vh,14px) 12px clamp(2px,.6vh,6px);font-size:clamp(.58rem,1.2vh,.8rem)}
+  .app-shell .coach-block{padding:clamp(4px,1vh,10px) 8px;gap:clamp(6px,1vh,10px);margin-top:clamp(4px,1vh,10px)}
+  .app-shell .coach-initial{width:clamp(24px,4.2vh,38px);height:clamp(24px,4.2vh,38px);font-size:clamp(.8rem,1.8vh,1.15rem)}
+  .app-shell .coach-block em{font-size:clamp(.5rem,.9vh,.62rem)}
+  .app-shell .coach-block strong{font-size:clamp(.78rem,1.7vh,.95rem);line-height:1.1}
+  .app-shell .coach-block span{font-size:clamp(.64rem,1.4vh,.78rem)}
+  .app-shell .sidebar .help-link{padding:clamp(1px,.5vh,6px) 8px;font-size:clamp(.72rem,1.6vh,.95rem);line-height:1.15}
+  .app-shell .sidebar .help-link.muted{font-size:clamp(.68rem,1.4vh,.85rem)}
+}
+@media (min-width:1000px) and (max-height:640px){
+  .app-shell .crest-name span{display:none}
+  .app-shell .program-mini.crest-hero{flex-direction:row;text-align:left;justify-content:center}
+  .app-shell .coach-block em{display:none}
+}
 </style></head><body><div id="root"><div style="font-family:Arial;color:#f1f2f5;background:#0d1016;min-height:100vh;display:grid;place-content:center;text-align:center"><h1>COLLEGE DYNASTY</h1><div class="boot-spin" aria-hidden="true"></div><p role="status">Opening your desktop game…</p><noscript>Enable JavaScript in your browser to play.</noscript></div></div><script>/* phone / home-screen app: only on the website (the desktop app and a file opened from disk skip this) */
 if(/^https?:$/.test(location.protocol)){var m=document.createElement("link");m.rel="manifest";m.href="manifest.webmanifest";document.head.appendChild(m);if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 /* touch screens have no mouse hover: tapping something that has a hover hint shows the hint for a moment */
@@ -6737,6 +7124,13 @@ function fy(e, a) {
       Hs(e);
       break;
     }
+    case "favAlum": {
+      let k = String(a.key || ""),
+        f = e.favAlum || [];
+      if (!k) throw new Error("Choose a former player.");
+      e.favAlum = f.includes(k) ? f.filter((z) => z !== k) : [...f, k];
+      break;
+    }
     case "minPreset": {
       if (!MINP[a.value]) throw new Error("Choose a minutes plan.");
       ((e.minPreset = a.value), Hs(e, !0));
@@ -7962,6 +8356,7 @@ var Gn =
     don: x.any().optional(),
     negs: x.array(x.any()).optional(),
     alumni: x.array(x.any()).optional(),
+    favAlum: x.array(x.string()).optional(),
     classes: x.array(x.any()).optional(),
     rival: x.any().optional(),
     h2h: x.any().optional(),
@@ -8832,7 +9227,7 @@ function Wa({ value: e, tone: a = "" }) {
 }
 function Xn({ n: e }) {
   return (0, s.jsx)("span", {
-    className: "stars",
+    className: `stars star-${e || 0}`,
     "aria-label": `${e} stars`,
     children: e
       ? Array.from({ length: 5 }, (a, t) =>
@@ -9196,6 +9591,38 @@ function RatingBar({ value: e, max: a = 99, label: t, tone: l }) {
         children: (0, s.jsx)("i", { style: { width: `${u}%` } }),
       }),
       (0, s.jsx)("b", { className: "ds-bar-num", children: e }),
+    ],
+  });
+}
+// RatingRing (look-and-feel item 4): a circular rating gauge for player cards and the profile. value = a number or a text range such as "62-74"
+// (an unscouted player: the ring is dashed and filled to the middle of the range, the same information the text already shows).
+function RatingRing({ value: e, label: a = "OVR", size: t = "" }) {
+  const nums = String(e).match(/\d+/g) || ["0"],
+    v = nums.reduce((z, k) => z + Number(k), 0) / nums.length,
+    range = nums.length > 1,
+    tone = v >= 80 ? "great" : v >= 65 ? "good" : v >= 50 ? "ok" : "low",
+    c = 2 * Math.PI * 42;
+  return (0, s.jsxs)("span", {
+    className: `ds-ring ${tone} ${t} ${range ? "range" : ""}`,
+    role: "img",
+    "aria-label": `${a} ${e}`,
+    children: [
+      (0, s.jsxs)("svg", {
+        viewBox: "0 0 100 100",
+        "aria-hidden": "true",
+        children: [
+          (0, s.jsx)("circle", { className: "ds-ring-track", cx: 50, cy: 50, r: 42 }),
+          (0, s.jsx)("circle", {
+            className: "ds-ring-fill",
+            cx: 50,
+            cy: 50,
+            r: 42,
+            strokeDasharray: `${((Math.min(99, v) / 99) * c).toFixed(1)} ${c.toFixed(1)}`,
+            transform: "rotate(-90 50 50)",
+          }),
+        ],
+      }),
+      (0, s.jsxs)("b", { children: [e, (0, s.jsx)("small", { children: a })] }),
     ],
   });
 }
@@ -9634,8 +10061,8 @@ function applyCfg() {
   ));
 
 // Filled in by tools/build.js: which build this is, and the "What's new" digest of the instruction log (item 32).
-var BUILD_INFO = {"version":"V13","build":159,"commit":"1f56e3f","dirty":false,"date":"2026-10-06T15:06:42.296Z"},
-  WHATS_NEW = [{"id":"0033","date":"2026-10-06","title":"Finish three tuning gaps that are still","text":"I finished the work and committed it (not pushed). The small-budget tournament rate is fixed and fewer coaches get fired. The season-5 dip shrank by half but does not meet the target in the low-budget levels."},{"id":"0032","date":"2026-10-06","title":"Big update","text":"Items 1 to 4 are done and committed, one commit each, nothing pushed. Items 2 and 4 are only partly done, and items 1 and 3 have gaps too. They are listed below."},{"id":"0031","date":"2026-10-05","title":"1. Auto-recruit should chase the best players,","text":"Both runs are going; I'll check them when they finish."},{"id":"0030","date":"2026-10-05","title":"Absolutely no sideways scrolling anywhere, and no","text":"At 1000, 1100, 1280 and 1440 wide, nothing scrolls sideways or is cut off, no table column is hidden, and only the page scrolls up and down. All tests pass, and the change is committed but not pushed."},{"id":"0029","date":"2026-10-05","title":"Two screen fixes, done together. 1. Put","text":"Both screen fixes are done and committed (fb99ea4, not pushed). The new overflow check passes: no screen scrolls sideways at 1100, 1280 or 1440 wide, so no table needed an exception."},{"id":"0027","date":"2026-10-05","title":"Big update","text":"Stage 1 is finished. I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\" (commit 0b71168). I changed no game code and pushed nothing. The commit also picked up tools/prompts/edit-0027-big-update-s1.txt, which was sitting uncommitted in the project folder."},{"id":"0025","date":"2026-10-05","title":"Big update: items 12, 15, 16, 22, 31, 33, 34, 53, 55","text":"Stage 1 is finished: I measured the game as it stands, wrote the numbers into CLAUDE.md under \"Baselines\", and committed it as \"Baseline\". I changed no game code and did not push. The commit also picked up the claude-log and prompt files that were already waiting."},{"id":"0024","date":"2026-10-05","title":"Big update: items 8, 9, 10, 11, 47, 50, 51, 54","text":"The baseline is recorded and saved as one commit called \"Baseline\" (ce627d2). I changed no game code, and nothing was pushed. The \"Baselines\" section of CLAUDE.md now has a full and a quick baseline, and the old ones are still there. The commit also picked up the log files that were already waiting in the folder."},{"id":"0023","date":"2026-10-04","title":"Big update: items 37, 38, 39, 40, 41, 42, 43, 44, 45","text":"I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\". I changed no game code, and nothing was pushed. The numbers come from commit 7cffff8, the code as it stood before this stage."},{"id":"0022","date":"2026-10-04","title":"Big update: items 26, 27, 28, 29, 30","text":"Both baselines are measured, written into CLAUDE.md under \"Baselines\" and committed as \"Baseline\". I didn't change any game code, and nothing was pushed."},{"id":"0021","date":"2026-10-04","title":"Big update: items 17, 18, 19, 21, 32, 35, 36, 52","text":"All five items are done and committed one by one (17, 18, 19, 21, 32), and nothing was pushed. None of them touched how games play. After each one npm test passed, including the draft shares, and I ran the screen tests for the ones that changed screens."},{"id":"0020","date":"2026-10-04","title":"Big update: items 14, 20, 48, 49","text":"All four items are done and committed, one commit each (14, 20, 48, 49). Nothing was pushed. After each one npm test passed. The three that change a screen also passed the quick screen test (101 checks, none failed)."},{"id":"0018","date":"2026-10-04","title":"Confrence and Schedule ranking boost","text":"Schedule strength and conference strength now count a bit more in the national rankings. The build and npm test pass, and the change is committed but not pushed."},{"id":"0017","date":"2026-10-04","title":"Big update 1","text":"All seven changes are in and committed (nothing pushed). The build, npm test and the screen test (186 steps) all pass, and the game-numbers test shows no change to how games play. Two of the fixes are checked with real player and school data; the draft-keep and rankings changes are only partly checked (see the end)."},{"id":"0016","date":"2026-10-04","title":"asking price displayed my recruits","text":"Your players' cards now show an \"Asking\" amount under the NIL line, so you can see what each one wants next to what you pay. I haven't looked at the cards on screen, so I haven't seen how it fits."},{"id":"0015","date":"2026-10-04","title":"phone","text":"The game now works on a 390-pixel-wide phone screen, it's easy to tap, and it can be installed as a home-screen app that works without internet. Every check passed. Nothing has been sent to GitHub or the public website yet."},{"id":"0014","date":"2026-10-03","title":"confrence ranking/top 25","text":"The Top 25 now lives in League news, and League news has a new Conference ranking tab. The game builds, npm test passes, and the click-through screen test passed all 186 steps."},{"id":"0013","date":"2026-10-03","title":"Put the confrence under team names in","text":"On the start page, each school card now shows its conference on a line right under the team name (for example, \"Gulf Conference\" under \"Delta State Tech\"). It's committed and not pushed."},{"id":"0012","date":"2026-10-03","title":"scratch all of this 5 years before","text":"Poor schools now have low expectations and a long grace period, and rich schools have high expectations and a short one. Schools are labeled by budget, not \"Easy\" or \"Hard\". I rebuilt the game, committed the change and did not push."},{"id":"0011","date":"2026-10-03","title":"Reverse the difficuly things and put the","text":"The difficulty is now reversed: rich, strong schools are Easy and poor, weak schools are Brutal. The start page lists schools from richest to poorest. The build, npm test and npm run test:ui all pass. The balance test now flags every tier, because its targets were written for the old direction."},{"id":"0010","date":"2026-10-03","title":"Let player go fix","text":"I couldn't reproduce the break, so I only fixed a wrong message on that screen. If you still see the problem, I need to know exactly what happened."},{"id":"0009","date":"2026-10-03","title":"Tab in league news with the top 50 players","text":"League News now has a \"Top 50\" tab. It's built, tested and committed, and I didn't push."},{"id":"0008","date":"2026-10-03","title":"pictures on my recruit recruit pages are","text":"The recruit picture is fixed: it now shows the whole head and shoulders instead of a zoomed-in crop. I checked this in a screenshot of a recruit's page."},{"id":"0007","date":"2026-10-03","title":"Suggested Edits","text":"That notice only confirms the balance runs ended. I'd already read their results and finished the work, so nothing changes."},{"id":"0006","date":"2026-10-03","title":"start new career option","text":"There's now a Start a new career button on the screen that says the saved career could not be opened."},{"id":"0005","date":"2026-10-03","title":"v13","text":"All 19 requests are done and saved as one commit on this computer. Nothing has been pushed to GitHub."},{"id":"0004","date":"2026-10-03","title":"Task 4: asking prices, long careers, season UI checks","text":"All four parts are done and committed as 29f99a0 (not pushed). The one target not quite met: the Hard tier has 44% of long careers fired against \"about 40%\"."},{"id":"0003","date":"2026-10-03","title":"Task 3: UI click-through test and multi-season money test","text":"I added both tests and ran them. Together they found one real bug, which I fixed. Final results: - npm run test:ui: 167 of 167 steps pass. - npm run test:nil: no CHECK flags. - npm test: all checks pass. - npm run test:realism: every row is still PASS, with the same numbers as before (the fix only touched the screen,…"},{"id":"0002","date":"2026-10-03","title":"Task 2: fix rebounds, blocks and other-team noise","text":"All realism rows now pass, balance is still in range, and npm test passes. The changes are committed (not pushed)."},{"id":"0001","date":"2026-10-03","title":"Task 1: add realism and balance measurement tests","text":"The balance run has started (30 schools, 3 seasons, 5 Chrome workers). I'll get a notification when it finishes."},{"id":"0000","date":"2026-10-03","title":"First look: check the build and plan the fixes (read-only)","text":"The game has been split into src/. The user asked me to confirm it builds and that npm test passes, then list the open issues from CLAUDE.md and propose an order to fix them. No files were to be changed."}];
+var BUILD_INFO = {"version":"V13","build":172,"commit":"7638abc","dirty":false,"date":"2026-10-06T21:11:40.189Z"},
+  WHATS_NEW = [{"id":"0036","date":"2026-10-06","title":"The left sidebar must never need scrolling.","text":"The left sidebar now fits with no scroll bar and nothing cut off at all seven window sizes you listed. All the checks pass, and the work is committed (not pushed)."},{"id":"0035","date":"2026-10-06","title":"Make the Former players tab show only","text":"The Former players tab now shows only the players you've favorited, and you can favorite from the new overlay. Everything I ran passes, and it's committed (not pushed)."},{"id":"0034","date":"2026-10-06","title":"Big update","text":"Items 1, 2 and 3 are done, and each has its own commit. No game rules, saves or numbers were touched. For each item I ran npm test, the quick screen test (135 steps, 0 failed) and the strict no-sideways-scrolling test. All passed at 390, 1000, 1100, 1280 and 1440 wide. I also looked at a desktop screenshot of Program…"},{"id":"0033","date":"2026-10-06","title":"Finish three tuning gaps that are still","text":"I finished the work and committed it (not pushed). The small-budget tournament rate is fixed and fewer coaches get fired. The season-5 dip shrank by half but does not meet the target in the low-budget levels."},{"id":"0032","date":"2026-10-06","title":"Big update","text":"Items 1 to 4 are done and committed, one commit each, nothing pushed. Items 2 and 4 are only partly done, and items 1 and 3 have gaps too. They are listed below."},{"id":"0031","date":"2026-10-05","title":"1. Auto-recruit should chase the best players,","text":"Both runs are going; I'll check them when they finish."},{"id":"0030","date":"2026-10-05","title":"Absolutely no sideways scrolling anywhere, and no","text":"At 1000, 1100, 1280 and 1440 wide, nothing scrolls sideways or is cut off, no table column is hidden, and only the page scrolls up and down. All tests pass, and the change is committed but not pushed."},{"id":"0029","date":"2026-10-05","title":"Two screen fixes, done together. 1. Put","text":"Both screen fixes are done and committed (fb99ea4, not pushed). The new overflow check passes: no screen scrolls sideways at 1100, 1280 or 1440 wide, so no table needed an exception."},{"id":"0027","date":"2026-10-05","title":"Big update","text":"Stage 1 is finished. I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\" (commit 0b71168). I changed no game code and pushed nothing. The commit also picked up tools/prompts/edit-0027-big-update-s1.txt, which was sitting uncommitted in the project folder."},{"id":"0025","date":"2026-10-05","title":"Big update: items 12, 15, 16, 22, 31, 33, 34, 53, 55","text":"Stage 1 is finished: I measured the game as it stands, wrote the numbers into CLAUDE.md under \"Baselines\", and committed it as \"Baseline\". I changed no game code and did not push. The commit also picked up the claude-log and prompt files that were already waiting."},{"id":"0024","date":"2026-10-05","title":"Big update: items 8, 9, 10, 11, 47, 50, 51, 54","text":"The baseline is recorded and saved as one commit called \"Baseline\" (ce627d2). I changed no game code, and nothing was pushed. The \"Baselines\" section of CLAUDE.md now has a full and a quick baseline, and the old ones are still there. The commit also picked up the log files that were already waiting in the folder."},{"id":"0023","date":"2026-10-04","title":"Big update: items 37, 38, 39, 40, 41, 42, 43, 44, 45","text":"I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\". I changed no game code, and nothing was pushed. The numbers come from commit 7cffff8, the code as it stood before this stage."},{"id":"0022","date":"2026-10-04","title":"Big update: items 26, 27, 28, 29, 30","text":"Both baselines are measured, written into CLAUDE.md under \"Baselines\" and committed as \"Baseline\". I didn't change any game code, and nothing was pushed."},{"id":"0021","date":"2026-10-04","title":"Big update: items 17, 18, 19, 21, 32, 35, 36, 52","text":"All five items are done and committed one by one (17, 18, 19, 21, 32), and nothing was pushed. None of them touched how games play. After each one npm test passed, including the draft shares, and I ran the screen tests for the ones that changed screens."},{"id":"0020","date":"2026-10-04","title":"Big update: items 14, 20, 48, 49","text":"All four items are done and committed, one commit each (14, 20, 48, 49). Nothing was pushed. After each one npm test passed. The three that change a screen also passed the quick screen test (101 checks, none failed)."},{"id":"0018","date":"2026-10-04","title":"Confrence and Schedule ranking boost","text":"Schedule strength and conference strength now count a bit more in the national rankings. The build and npm test pass, and the change is committed but not pushed."},{"id":"0017","date":"2026-10-04","title":"Big update 1","text":"All seven changes are in and committed (nothing pushed). The build, npm test and the screen test (186 steps) all pass, and the game-numbers test shows no change to how games play. Two of the fixes are checked with real player and school data; the draft-keep and rankings changes are only partly checked (see the end)."},{"id":"0016","date":"2026-10-04","title":"asking price displayed my recruits","text":"Your players' cards now show an \"Asking\" amount under the NIL line, so you can see what each one wants next to what you pay. I haven't looked at the cards on screen, so I haven't seen how it fits."},{"id":"0015","date":"2026-10-04","title":"phone","text":"The game now works on a 390-pixel-wide phone screen, it's easy to tap, and it can be installed as a home-screen app that works without internet. Every check passed. Nothing has been sent to GitHub or the public website yet."},{"id":"0014","date":"2026-10-03","title":"confrence ranking/top 25","text":"The Top 25 now lives in League news, and League news has a new Conference ranking tab. The game builds, npm test passes, and the click-through screen test passed all 186 steps."},{"id":"0013","date":"2026-10-03","title":"Put the confrence under team names in","text":"On the start page, each school card now shows its conference on a line right under the team name (for example, \"Gulf Conference\" under \"Delta State Tech\"). It's committed and not pushed."},{"id":"0012","date":"2026-10-03","title":"scratch all of this 5 years before","text":"Poor schools now have low expectations and a long grace period, and rich schools have high expectations and a short one. Schools are labeled by budget, not \"Easy\" or \"Hard\". I rebuilt the game, committed the change and did not push."},{"id":"0011","date":"2026-10-03","title":"Reverse the difficuly things and put the","text":"The difficulty is now reversed: rich, strong schools are Easy and poor, weak schools are Brutal. The start page lists schools from richest to poorest. The build, npm test and npm run test:ui all pass. The balance test now flags every tier, because its targets were written for the old direction."},{"id":"0010","date":"2026-10-03","title":"Let player go fix","text":"I couldn't reproduce the break, so I only fixed a wrong message on that screen. If you still see the problem, I need to know exactly what happened."},{"id":"0009","date":"2026-10-03","title":"Tab in league news with the top 50 players","text":"League News now has a \"Top 50\" tab. It's built, tested and committed, and I didn't push."},{"id":"0008","date":"2026-10-03","title":"pictures on my recruit recruit pages are","text":"The recruit picture is fixed: it now shows the whole head and shoulders instead of a zoomed-in crop. I checked this in a screenshot of a recruit's page."},{"id":"0007","date":"2026-10-03","title":"Suggested Edits","text":"That notice only confirms the balance runs ended. I'd already read their results and finished the work, so nothing changes."},{"id":"0006","date":"2026-10-03","title":"start new career option","text":"There's now a Start a new career button on the screen that says the saved career could not be opened."},{"id":"0005","date":"2026-10-03","title":"v13","text":"All 19 requests are done and saved as one commit on this computer. Nothing has been pushed to GitHub."},{"id":"0004","date":"2026-10-03","title":"Task 4: asking prices, long careers, season UI checks","text":"All four parts are done and committed as 29f99a0 (not pushed). The one target not quite met: the Hard tier has 44% of long careers fired against \"about 40%\"."},{"id":"0003","date":"2026-10-03","title":"Task 3: UI click-through test and multi-season money test","text":"I added both tests and ran them. Together they found one real bug, which I fixed. Final results: - npm run test:ui: 167 of 167 steps pass. - npm run test:nil: no CHECK flags. - npm test: all checks pass. - npm run test:realism: every row is still PASS, with the same numbers as before (the fix only touched the screen,…"},{"id":"0002","date":"2026-10-03","title":"Task 2: fix rebounds, blocks and other-team noise","text":"All realism rows now pass, balance is still in range, and npm test passes. The changes are committed (not pushed)."},{"id":"0001","date":"2026-10-03","title":"Task 1: add realism and balance measurement tests","text":"The balance run has started (30 schools, 3 seasons, 5 Chrome workers). I'll get a notification when it finishes."},{"id":"0000","date":"2026-10-03","title":"First look: check the build and plan the fixes (read-only)","text":"The game has been split into src/. The user asked me to confirm it builds and that npm test passes, then list the open issues from CLAUDE.md and propose an order to fix them. No files were to be changed."}];
 
 function DiagPanel({ g: e }) {
   let R = e.opponents.map((t) => t.rating),
@@ -11010,13 +11437,14 @@ function oc() {
                     ],
                   }),
                   (0, s.jsxs)("div", {
-                    className: "program-mini",
+                    className: "program-mini crest-hero",
                     children: [
                       (0, s.jsx)("div", {
-                        className: "crest small has-logo",
+                        className: "crest-big",
                         children: (0, s.jsx)(SchoolLogo, { school: e.school }),
                       }),
                       (0, s.jsxs)("div", {
+                        className: "crest-name",
                         children: [
                           (0, s.jsx)("strong", { children: e.school.name }),
                           (0, s.jsx)("span", { children: e.school.mascot }),
@@ -11063,6 +11491,7 @@ function oc() {
                       }),
                       (0, s.jsxs)("div", {
                         children: [
+                          (0, s.jsx)("em", { children: "HEAD COACH" }),
                           (0, s.jsx)("strong", { children: e.coach }),
                           (0, s.jsxs)("span", { children: [e.specialty, " \xB7 Level ", e.level] }),
                         ],
@@ -11096,12 +11525,27 @@ function oc() {
                             "aria-label": "Toggle navigation",
                             children: (0, s.jsx)(Os, { size: 23 }),
                           }),
-                          (0, s.jsxs)("span", {
-                            className: "season-tag",
-                            children: [e.year, "\u2014", String(e.year + 1).slice(2)],
+                          (0, s.jsxs)("div", {
+                            className: "score-bug",
+                            children: [
+                              (0, s.jsxs)("span", {
+                                className: "season-tag",
+                                children: [e.year, "\u2014", String(e.year + 1).slice(2)],
+                              }),
+                              (0, s.jsx)("span", { className: "bug-phase", children: e.phase }),
+                              (0, s.jsxs)("span", {
+                                className: "bug-record",
+                                title: e.phase === "Offseason" ? "Last season's record" : "Overall record",
+                                children: [
+                                  (0, s.jsx)("small", { children: e.phase === "Offseason" ? "LAST" : "REC" }),
+                                  (() => {
+                                    const rc2 = e.phase === "Offseason" ? e.history.at(-1) : dl(e);
+                                    return rc2 ? `${rc2.wins}\u2013${rc2.losses}` : "\u2013";
+                                  })(),
+                                ],
+                              }),
+                            ],
                           }),
-                          (0, s.jsx)("span", { className: "divider" }),
-                          (0, s.jsx)("span", { children: e.phase }),
                           e.phase === "Offseason" &&
                             (0, s.jsxs)(he, {
                               tone: "orange",
@@ -11231,7 +11675,7 @@ function oc() {
                           openLive: () => setLiveOpen(!0),
                         }),
                       C === "NIL" && (0, s.jsx)(e0, { g: e, select: m, run: Xe }),
-                      C === "History" && (0, s.jsx)(a0, { g: e }),
+                      C === "History" && (0, s.jsx)(a0, { g: e, run: Xe }),
                       C === "News" && (0, s.jsx)(NewsPage, { g: e, run: Xe }),
                       C === "Settings" && (0, s.jsx)(SettingsPage, { g: e, run: Xe }),
                     ],
@@ -13116,9 +13560,9 @@ function Fy({ p: e, onClick: a, prospect: t = !1 }) {
         children: [
           (0, s.jsx)(Ja, { p: e }),
           (0, s.jsxs)("span", { className: "jersey", children: ["#", e.number] }),
-          (0, s.jsxs)("span", {
-            className: "overall",
-            children: [t ? Tt(e) : e.ovr, (0, s.jsx)("small", { children: "OVR" })],
+          (0, s.jsx)("span", {
+            className: "overall ring-holder",
+            children: (0, s.jsx)(RatingRing, { value: t ? Tt(e) : e.ovr }),
           }),
           (0, s.jsxs)("div", {
             className: "card-image-bottom",
@@ -13142,6 +13586,7 @@ function Fy({ p: e, onClick: a, prospect: t = !1 }) {
         children: [
           (0, s.jsx)("h3", { children: e.name }),
           (0, s.jsxs)("p", { children: [Zl(e), " \xB7 ", qs(e.height)] }),
+          !t && (0, s.jsx)("span", { className: "arch-tag", children: W_arch(e) }),
           t
             ? (0, s.jsxs)(s.Fragment, {
                 children: [
@@ -13225,6 +13670,114 @@ function hqNext(e, steps, nextGame) {
   if (e.phase === "Season review") return { key: "tab", tab: "Season", title: "Review your season", why: e.result || "Season complete", label: "Open season center" };
   if (nextGame) return { key: "sim", title: `Next game: ${nextGame.venue === "Away" ? "at" : nextGame.venue === "Neutral" ? "vs (neutral)" : "vs"} ${nextGame.opponent}`, why: `${nextGame.kind} \xB7 opponent overall ${nextGame.rating}`, label: "Sim next game" };
   return { key: "tab", tab: "Season", title: e.phase, why: e.berth || "Your next result is waiting in the season center.", label: "Open season center" };
+}
+// A school-like object for any opponent (they have no color or mascot of their own): a steady color from the id, so the generated logo is always the same.
+function hqOppSchool(o) {
+  return { id: o.id, name: o.name, short: o.short, mascot: "", color: `hsl(${TS(String(o.id)) % 360} 58% 56%)` };
+}
+// Display-only win chance for the next game: a logistic curve on the rating gap (gap 0 is about even, +10 about 70%) and a small venue edge. It is NOT the engine's number.
+function hqWinChance(e, r) {
+  const gap = Ps(e) - r.rating + (r.venue === "Home" ? 3 : r.venue === "Away" ? -3 : 0);
+  return Math.min(97, Math.max(3, Math.round(100 / (1 + Math.exp(-gap / 11.8)))));
+}
+function HqMatchup({ e, r }) {
+  const o = e.league.find((z) => z.id === r.oppId) || e.opponents.find((z) => z.id === r.oppId),
+    sc = o ? hqOppSchool(o) : { id: r.oppId, name: r.opponent, short: "", mascot: "", color: "#9aa3b5" },
+    mine = dl(e),
+    win = hqWinChance(e, r);
+  return (0, s.jsxs)("div", {
+    className: "hq-matchup",
+    children: [
+      (0, s.jsxs)("div", {
+        className: "hq-side",
+        children: [
+          (0, s.jsx)("div", { className: "hq-logo", children: (0, s.jsx)(SchoolLogo, { school: e.school }) }),
+          (0, s.jsx)("strong", { children: e.school.name }),
+          (0, s.jsxs)("span", { children: [mine.wins, "–", mine.losses, " \xB7 OVR ", Ps(e)] }),
+        ],
+      }),
+      (0, s.jsx)("div", { className: "hq-vs", children: r.venue === "Away" ? "AT" : "VS" }),
+      (0, s.jsxs)("div", {
+        className: "hq-side",
+        children: [
+          (0, s.jsx)("div", { className: "hq-logo", children: (0, s.jsx)(SchoolLogo, { school: sc }) }),
+          (0, s.jsx)("strong", { children: r.opponent }),
+          (0, s.jsxs)("span", { children: [o ? `${o.wins}–${o.losses} \xB7 ` : "", "OVR ", r.rating] }),
+        ],
+      }),
+      (0, s.jsxs)("div", {
+        className: "hq-chance",
+        title: "An estimate from the two teams' overall ratings and the venue",
+        children: [
+          (0, s.jsxs)("div", {
+            className: "hq-chance-top",
+            children: [
+              (0, s.jsxs)("b", { children: [win, "%"] }),
+              (0, s.jsx)("span", { children: "WIN CHANCE (ESTIMATE)" }),
+              (0, s.jsxs)("b", { className: "opp", children: [100 - win, "%"] }),
+            ],
+          }),
+          (0, s.jsx)("div", {
+            className: "hq-chance-bar",
+            role: "img",
+            "aria-label": `Win chance ${win} percent`,
+            children: (0, s.jsx)("i", { style: { width: `${win}%` } }),
+          }),
+        ],
+      }),
+      (0, s.jsx)("p", { className: "hq-kind", children: `${r.kind}${r.event ? " \xB7 " + r.event : ""}${r.rival ? " \xB7 RIVALRY" : ""}` }),
+    ],
+  });
+}
+// One chip per scheduled game: green W, red L, outlined for games still to play.
+function HqTimeline({ e, onOpen }) {
+  return (0, s.jsx)("section", {
+    className: "hq-timeline",
+    "aria-label": "Season timeline",
+    children: [
+      (0, s.jsx)("span", { className: "hq-strip-title", key: "t", children: "SEASON TIMELINE" }),
+      (0, s.jsx)("div", {
+        className: "hq-chips",
+        key: "c",
+        children: e.schedule.map((g, i) =>
+          (0, s.jsx)(
+            g.played ? "button" : "span",
+            {
+              className: "hq-chip " + (g.played ? (g.win ? "w" : "l") : "todo") + (g.kind === "Conference" ? " conf" : ""),
+              title: `${g.played ? (g.win ? "W " : "L ") + g.us + "–" + g.them : "Upcoming"} ${g.venue === "Away" ? "at" : "vs"} ${g.opponent}`,
+              onClick: g.played ? () => onOpen(g.id) : void 0,
+              children: g.played ? (g.win ? "W" : "L") : i + 1,
+            },
+            g.id
+          )
+        ),
+      }),
+    ],
+  });
+}
+// A strip of big numbers from the games played so far.
+function HqStats({ e }) {
+  const pl = e.schedule.filter((g) => g.played);
+  if (!pl.length) return null;
+  const avg = (k) => (pl.reduce((a, g) => a + g[k], 0) / pl.length).toFixed(1),
+    cf = Dn(e),
+    last = pl[pl.length - 1];
+  let streak = 0;
+  for (let i = pl.length - 1; i >= 0 && pl[i].win === last.win; i--) streak++;
+  const tiles = [
+    ["POINTS FOR", avg("us")],
+    ["POINTS AGAINST", avg("them")],
+    ["AVG MARGIN", ((pl.reduce((a, g) => a + g.us - g.them, 0) / pl.length) >= 0 ? "+" : "") + (pl.reduce((a, g) => a + g.us - g.them, 0) / pl.length).toFixed(1)],
+    ["CONFERENCE", `${cf.wins}–${cf.losses}`],
+    ["STREAK", `${last.win ? "W" : "L"}${streak}`],
+  ];
+  return (0, s.jsx)("section", {
+    className: "hq-stats",
+    "aria-label": "Season numbers",
+    children: tiles.map(([k, v]) =>
+      (0, s.jsxs)("div", { className: "hq-stat", children: [(0, s.jsx)("b", { children: v }), (0, s.jsx)("span", { children: k })] }, k)
+    ),
+  });
 }
 function ZC({
   g: e,
@@ -13312,6 +13865,19 @@ function ZC({
                   (0, s.jsx)("span", { children: e.school.mascot }),
                 ],
               }),
+              (() => {
+                const hr = e.phase === "Offseason" ? e.history.at(-1) : o;
+                return (
+                  hr &&
+                  (0, s.jsxs)("div", {
+                    className: "hq-bigrecord",
+                    children: [
+                      (0, s.jsxs)("b", { children: [hr.wins, "–", hr.losses] }),
+                      (0, s.jsx)("span", { children: e.phase === "Offseason" ? "LAST SEASON" : "OVERALL" }),
+                    ],
+                  })
+                );
+              })(),
               (0, s.jsx)("p", {
                 children:
                   e.phase === "Offseason"
@@ -13421,6 +13987,8 @@ function ZC({
             }),
         ],
       }),
+      e.phase !== "Offseason" && (0, s.jsx)(HqTimeline, { e, onOpen: u }),
+      e.phase !== "Offseason" && (0, s.jsx)(HqStats, { e }),
       (0, s.jsxs)("div", {
         className: "metrics",
         children: [
@@ -13514,25 +14082,7 @@ function ZC({
                               className: "eyebrow",
                               children: ["NEXT UP \xB7 ", r.venue.toUpperCase()],
                             }),
-                            (0, s.jsxs)("div", {
-                              className: "matchup",
-                              children: [
-                                (0, s.jsx)("div", {
-                                  className: "crest has-logo",
-                                  children: (0, s.jsx)(SchoolLogo, { school: e.school }),
-                                }),
-                                (0, s.jsx)("span", { children: "VS" }),
-                                (0, s.jsx)("div", {
-                                  className: "opponent-mark",
-                                  children: r.opponent
-                                    .split(" ")
-                                    .map((f) => f[0])
-                                    .join(""),
-                                }),
-                              ],
-                            }),
-                            (0, s.jsxs)("h3", { children: [e.school.name, " vs ", r.opponent] }),
-                            (0, s.jsxs)("p", { children: [r.kind, " \xB7 Opponent overall ", r.rating] }),
+                            (0, s.jsx)(HqMatchup, { e, r }),
                             (0, s.jsxs)(X, {
                               primary: !0,
                               onClick: () => {
@@ -13958,27 +14508,87 @@ function GameDay({ g: e, run: run, onClose: onClose }) {
     them = hd ? hd.opponent : "Opponent",
     half = lv && !playing,
     fin = done && last && !lv && !playing,
+    // look-and-feel item 6 (display only): opponent logo and color, shot clock and momentum read from the play log
+    oppT = hd && (e.league.find((z) => z.id === hd.oppId) || e.opponents.find((z) => z.id === hd.oppId)),
+    oppS = oppT ? hqOppSchool(oppT) : { id: them, name: them, short: "", mascot: "", color: "#9aa3b5" },
+    prev = rows.at(-2),
+    // the shot clock when the last play happened: 30 minus the time since the play before it (same period only)
+    shot = cur && prev && cur.k !== void 0 && prev.k !== void 0 && cur.q === prev.q ? Math.max(0, Math.min(30, 30 - (prev.k - cur.k))) : null,
+    // momentum: net points over the last 12 plays, -12..+12 mapped onto the bar (50% = even)
+    mom = rows.slice(-12).reduce((x, z) => x + (z.p ? (z.t === "us" ? z.p : -z.p) : 0), 0),
+    momPct = 50 + (Math.max(-12, Math.min(12, mom)) / 12) * 50,
     board = (lbl) =>
       (0, s.jsxs)("div", {
         className: "gd-board",
+        style: { "--opp": oppS.color },
         children: [
           (0, s.jsxs)("div", {
             className: "gd-team us",
-            children: [(0, s.jsx)("span", { children: e.school.name }), (0, s.jsx)("strong", { children: fin ? last.us : sc })],
+            children: [
+              (0, s.jsx)("div", { className: "gd-logo", children: (0, s.jsx)(SchoolLogo, { school: e.school }) }),
+              (0, s.jsxs)("div", {
+                className: "gd-team-txt",
+                children: [(0, s.jsx)("span", { children: e.school.name }), (0, s.jsx)("strong", { children: fin ? last.us : sc })],
+              }),
+            ],
           }),
           (0, s.jsxs)("div", {
             className: "gd-clock" + (half || fin ? " pause" : ""),
             children: [
               (0, s.jsx)("small", { children: lbl }),
               (0, s.jsx)("b", { children: fin ? "FINAL" : half && !to ? "HALFTIME" : clk(cur?.m, cur) }),
+              !fin &&
+                !(half && !to) &&
+                (0, s.jsxs)("span", {
+                  className: "gd-shot",
+                  title: "Shot clock when the last play happened",
+                  children: [(0, s.jsx)("i", { children: "SHOT" }), shot == null ? "–" : String(Math.round(shot)).padStart(2, "0")],
+                }),
             ],
           }),
           (0, s.jsxs)("div", {
-            className: "gd-team",
-            children: [(0, s.jsx)("span", { children: them }), (0, s.jsx)("strong", { children: fin ? last.them : so })],
+            className: "gd-team them",
+            children: [
+              (0, s.jsxs)("div", {
+                className: "gd-team-txt",
+                children: [(0, s.jsx)("span", { children: them }), (0, s.jsx)("strong", { children: fin ? last.them : so })],
+              }),
+              (0, s.jsx)("div", { className: "gd-logo", children: (0, s.jsx)(SchoolLogo, { school: oppS }) }),
+            ],
           }),
+          rows.length > 0 &&
+            (0, s.jsxs)("div", {
+              className: "gd-mom",
+              title: "Momentum: points over the last 12 plays",
+              children: [
+                (0, s.jsx)("span", { children: "MOMENTUM" }),
+                (0, s.jsx)("div", {
+                  className: "gd-mom-bar",
+                  role: "img",
+                  "aria-label": `Momentum ${mom > 0 ? "with " + me : mom < 0 ? "with " + them : "even"}`,
+                  children: (0, s.jsx)("i", { style: { width: `${momPct}%` } }),
+                }),
+              ],
+            }),
         ],
       }),
+    // small icon for each play-by-play line, read from its text
+    ico = (z) =>
+      z.p
+        ? ["make", "+" + z.p]
+        : /timeout/i.test(z.x)
+          ? ["tmo", "T"]
+          : /foul|bonus/i.test(z.x)
+            ? ["foul", "F"]
+            : /miss|block/i.test(z.x)
+              ? ["miss", "✕"]
+              : /turn|steal|violation/i.test(z.x)
+                ? ["tov", "TO"]
+                : /substitution/i.test(z.x)
+                  ? ["sub", "⇄"]
+                  : /rebound/i.test(z.x)
+                    ? ["reb", "R"]
+                    : ["info", "•"],
     // item 22: scouting report with a suggested approach (before tip-off and at halftime)
     scoutBox = (game) => {
       let sc = game && W_scout(e, game);
@@ -14028,7 +14638,7 @@ function GameDay({ g: e, run: run, onClose: onClose }) {
                     className: `season-game ${z.p ? "score" : ""} ${z.t}`,
                     children: [
                       (0, s.jsx)("span", { className: "muted gd-time", children: clk(z.m, z) }),
-                      (0, s.jsx)("span", { className: "gd-play", children: z.x }),
+                      (0, s.jsx)("span", { className: "gd-play", children: [(0, s.jsx)("i", { className: "gd-ico " + ico(z)[0], "aria-hidden": "true", children: ico(z)[1] }, "i"), z.x] }),
                       (0, s.jsx)("b", { children: z.p ? `${z.a}–${z.b}` : "" }),
                     ],
                   },
@@ -14095,6 +14705,10 @@ function GameDay({ g: e, run: run, onClose: onClose }) {
                         )
                       ),
                     }),
+                    (0, s.jsxs)("section", {
+                      className: "gd-half-panel" + (to ? " timeout" : ""),
+                      "aria-label": to ? "Timeout adjustments" : "Halftime adjustments",
+                      children: [
                     (0, s.jsx)("h3", { style: { marginTop: 14 }, children: to ? "Timeout adjustments" : "Halftime adjustments" }),
                     (0, s.jsx)("div", {
                       className: "rp-grid",
@@ -14143,6 +14757,8 @@ function GameDay({ g: e, run: run, onClose: onClose }) {
                           }),
                         ],
                       }),
+                    }),
+                      ],
                     }),
                     (0, s.jsx)("h3", { style: { marginTop: 14 }, children: "Substitutions" }),
                     (0, s.jsx)("div", {
@@ -14528,10 +15144,24 @@ function Top25Panel({ g: e }) {
           label: "MOVE",
           num: !1,
           get: (x) => (x.pre ? 0 : x.chg || 0),
-          render: (x) => (x.pre || !x.chg ? "–" : x.chg > 0 ? "▲ " + x.chg : "▼ " + -x.chg),
+          render: (x) =>
+            x.pre || !x.chg
+              ? "–"
+              : (0, s.jsx)("span", { className: "move-arrow " + (x.chg > 0 ? "up" : "down"), children: (x.chg > 0 ? "▲ " : "▼ ") + Math.abs(x.chg) }),
           className: "muted",
         },
-        { key: "name", label: "TEAM", render: (x) => (0, s.jsx)("strong", { children: x.name }) },
+        {
+          key: "name",
+          label: "TEAM",
+          render: (x) =>
+            (0, s.jsxs)("span", {
+              className: "team-cell",
+              children: [
+                (0, s.jsx)("span", { className: "team-logo", children: (0, s.jsx)(SchoolLogo, { school: x.id === me ? e.school : hqOppSchool(x) }) }),
+                (0, s.jsx)("strong", { children: x.name }),
+              ],
+            }),
+        },
         { key: "rec", label: "RECORD", num: !0, get: (x) => x.wins - x.losses, render: (x) => `${x.wins}–${x.losses}` },
         {
           key: "net",
@@ -15482,7 +16112,13 @@ function BubblePanel({ g: e }) {
         {
           className: x.id === e.school.id ? "team-row you" : "team-row",
           children: [
-            (0, s.jsx)("span", { children: `${x.name}` }),
+            (0, s.jsxs)("span", {
+              className: "team-cell",
+              children: [
+                (0, s.jsx)("span", { className: "team-logo", children: (0, s.jsx)(SchoolLogo, { school: x.id === e.school.id ? e.school : hqOppSchool(x) }) }),
+                `${x.name}`,
+              ],
+            }),
             (0, s.jsx)("small", { children: `${x.wins}\u2013${x.losses}` }),
           ],
         },
@@ -15532,18 +16168,18 @@ function BubblePanel({ g: e }) {
           ],
         }),
         (0, s.jsxs)("div", {
-          className: "team-card",
+          className: "team-card bubble-in",
           children: [(0, s.jsx)("h4", { children: "Last four in" }), b.last.map((x, i) => row(x, i, "l"))],
         }),
         (0, s.jsxs)("div", {
-          className: "team-card",
+          className: "team-card bubble-out",
           children: [
             (0, s.jsx)("h4", { children: "First four out" }),
             b.firstOut.map((x, i) => row(x, i, "o")),
           ],
         }),
         (0, s.jsxs)("div", {
-          className: "team-card",
+          className: "team-card bubble-out",
           children: [
             (0, s.jsx)("h4", { children: "Next four out" }),
             b.nextOut.map((x, i) => row(x, i, "n")),
@@ -15670,7 +16306,12 @@ function BracketTree(props) {
     ],
   });
 }
-function BracketTreeInner({ rounds: r0, names: nm, me: me, regions: regions }) {
+function btCrest(name, me, school) {
+  // your school gets its real logo; everyone else a generated one in a steady color (bracket rows only carry names)
+  const sc = school && name === me ? school : hqOppSchool({ id: name, name, short: String(name).replace(/[^A-Z]/g, "").slice(0, 3) || String(name).slice(0, 3).toUpperCase() });
+  return (0, s.jsx)("span", { className: "bt-logo", "aria-hidden": "true", children: (0, s.jsx)(SchoolLogo, { school: sc }) });
+}
+function BracketTreeInner({ rounds: r0, names: nm, me: me, regions: regions, school: school }) {
   // a First Four round is shown as a line above the tree; the tree itself starts with the round of 64
   let ffRound = r0[0]?.[0]?.ff || r0[0]?.[0]?.pi ? r0[0] : null,
     r = ffRound ? r0.slice(1) : r0,
@@ -15721,6 +16362,7 @@ function BracketTreeInner({ rounds: r0, names: nm, me: me, regions: regions }) {
                   (0, s.jsxs)("span", {
                     children: [
                       g[d] ? (0, s.jsx)("i", { className: "seed", children: g[d] }) : null,
+                      g[t] ? btCrest(g[t], me, school) : null,
                       g[t] || "TBD",
                     ],
                   }),
@@ -16098,7 +16740,7 @@ function SeasonModal({ g: e, onClose: a, tab0: tab0 }) {
     [t, l] = (0, N.useState)(tab0 || "Games"),
     CN = ["Quarterfinals", "Semifinals", "Final"],
     NN = natNames(!1),
-    br = (r, nm, rg) => (0, s.jsx)(BracketTree, { rounds: r, names: nm, me: e.school.name, regions: rg });
+    br = (r, nm, rg) => (0, s.jsx)(BracketTree, { rounds: r, names: nm, me: e.school.name, regions: rg, school: e.school });
   return (0, s.jsx)(Ao, {
     title: "Season results",
     onClose: a,
@@ -16202,6 +16844,39 @@ function SeasonModal({ g: e, onClose: a, tab0: tab0 }) {
   });
 }
 
+// CountUp (look-and-feel item 9): when a stat tile's number CHANGES (not when the screen first opens) it counts from the old value to the new one in about 0.45 s.
+// Only plain numbers such as 80, 66%, $2.18M or 14.5K are animated; anything else (records like 22-10) just changes. Skipped when the system asks for reduced motion.
+function CountUp({ value: v }) {
+  const prev = (0, N.useRef)(v),
+    [txt, setTxt] = (0, N.useState)(v);
+  (0, N.useEffect)(() => {
+    const from = prev.current;
+    prev.current = v;
+    const re = /^([^\d-]*)(-?\d[\d,]*\.?\d*)([^\d]*)$/,
+      a = re.exec(String(from)),
+      b = re.exec(String(v));
+    if (!a || !b || from === v || a[1] !== b[1] || a[3] !== b[3] || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+      setTxt(v);
+      return;
+    }
+    const x0 = parseFloat(a[2].replace(/,/g, "")),
+      x1 = parseFloat(b[2].replace(/,/g, "")),
+      dec = (b[2].split(".")[1] || "").length,
+      comma = b[2].includes(","),
+      t0 = performance.now();
+    let id;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 450),
+        n = x0 + (x1 - x0) * (1 - Math.pow(1 - k, 3)),
+        f = n.toFixed(dec);
+      setTxt(b[1] + (comma ? Number(f).toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec }) : f) + b[3]);
+      k < 1 ? (id = requestAnimationFrame(step)) : setTxt(v);
+    };
+    id = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(id);
+  }, [v]);
+  return typeof v === "string" || typeof v === "number" ? txt : v;
+}
 function ca({ label: e, value: a, note: t, icon: l, onClick: u, spark: sp, sparkNote: sn }) {
   return (0, s.jsxs)(u ? "button" : "div", {
     type: u ? "button" : void 0,
@@ -16209,7 +16884,7 @@ function ca({ label: e, value: a, note: t, icon: l, onClick: u, spark: sp, spark
     className: u ? "metric clickable" : "metric",
     children: [
       (0, s.jsxs)("div", { children: [(0, s.jsx)("span", { children: e }), l] }),
-      (0, s.jsx)("strong", { children: a }),
+      (0, s.jsx)("strong", { children: (0, s.jsx)(CountUp, { value: a }) }),
       (0, s.jsx)("p", { children: t }),
       sp && sp.length >= 2 && (0, s.jsx)(Sparkline, { values: sp, label: sn }),
       u &&
@@ -16810,7 +17485,7 @@ function RecruitTable({ g: e, rows: a, run: t, select: l, kind: u, empty: o }) {
         render: (v) =>
           (0, s.jsxs)(s.Fragment, {
             children: [
-              (0, s.jsx)("strong", { className: "rating-inline", children: Tt(v) }),
+              (0, s.jsx)("strong", { className: "rating-inline", children: (0, s.jsx)(RatingRing, { value: Tt(v) }) }),
               (0, s.jsx)("span", { className: "table-sub", children: v.origin === "Walk-on" || v.scouted >= 2 ? "Scouted" : "Estimated" }),
             ],
           }),
@@ -16873,6 +17548,9 @@ function RecruitTable({ g: e, rows: a, run: t, select: l, kind: u, empty: o }) {
                         ? v.committedTo
                         : v.status,
               }),
+              v.status === "Available" && Object.keys(v.pitched || {}).length > 0
+                ? (0, s.jsx)("span", { className: "pitch-tag", title: Object.keys(v.pitched).join(", "), children: `Pitched \xD7${Object.keys(v.pitched).length}` })
+                : null,
             ],
           }),
       },
@@ -18072,6 +18750,7 @@ function $C({ g: e, run: a, openBox: t, select: l, askSim: askSim, openLive: ope
                   ? NIT_NAMES
                   : ["Quarterfinals", "Semifinals", "Championship"],
             me: e.school.name,
+            school: e.school,
             regions: e.tournament === "National" ? natRegionText(e.year) : null,
           }),
         }),
@@ -18829,8 +19508,34 @@ function HistoryLeaders({ h: h, g: e, part: part = "Leaders" }) {
       });
 }
 
-function AlumniPanel({ g: e, part: part }) {
+// A former player's favorite key: name + the year he left (stored in e.favAlum).
+const alumKey = (a) => `${a.n}|${a.y}`;
+function AlumniPanel({ g: e, part: part, run: run }) {
+  const [adding, setAdding] = (0, N.useState)(!1),
+    [q, setQ] = (0, N.useState)(""),
+    // rows stay on the tab after an unfavorite until you leave it, so a mis-click can be undone
+    [kept, setKept] = (0, N.useState)(() => new Set(e.favAlum || []));
+  (0, N.useEffect)(() => {
+    if (!adding) return;
+    const h = (ev) => ev.key === "Escape" && (ev.stopPropagation(), setAdding(!1));
+    return (document.addEventListener("keydown", h, !0), () => document.removeEventListener("keydown", h, !0));
+  }, [adding]);
   let al = e.alumni || [],
+    favs = new Set(e.favAlum || []),
+    toggle = (a) => {
+      favs.has(alumKey(a)) || setKept((k) => new Set(k).add(alumKey(a)));
+      run && run({ type: "favAlum", key: alumKey(a) });
+    },
+    star = (a) =>
+      (0, s.jsx)("button", {
+        type: "button",
+        className: "fav-star" + (favs.has(alumKey(a)) ? " on" : ""),
+        "aria-label": (favs.has(alumKey(a)) ? "Unfavorite " : "Favorite ") + a.n,
+        "aria-pressed": favs.has(alumKey(a)),
+        title: favs.has(alumKey(a)) ? "Unfavorite" : "Favorite",
+        onClick: () => toggle(a),
+        children: favs.has(alumKey(a)) ? "★" : "☆",
+      }),
     aw = {};
   (e.history || []).forEach((x) =>
     (x.awards || []).forEach((o) =>
@@ -18878,7 +19583,7 @@ function AlumniPanel({ g: e, part: part }) {
                     {
                       className: "team-row",
                       children: [
-                        (0, s.jsx)("span", { children: r[0] }),
+                        (0, s.jsxs)("span", { children: [r[2] ? star(r[2]) : null, r[0]] }),
                         (0, s.jsx)("small", { children: r[1] }),
                       ],
                     },
@@ -18893,6 +19598,45 @@ function AlumniPanel({ g: e, part: part }) {
         },
         t
       );
+  let fTable = (list) =>
+      (0, s.jsx)("div", {
+        className: "table-wrap",
+        children: (0, s.jsxs)("table", {
+          children: [
+            (0, s.jsx)("thead", {
+              children: (0, s.jsx)("tr", {
+                children: ["★", "PLAYER", "POS", "LEFT", "CAREER WITH YOU", "WHAT HAPPENED", "NOW", "AVERAGING NOW"].map((z, i) =>
+                  (0, s.jsx)("th", { children: z, "aria-label": i ? undefined : "Favorite" }, i)
+                ),
+              }),
+            }),
+            (0, s.jsx)("tbody", {
+              children: list.map((a) =>
+                (0, s.jsxs)(
+                  "tr",
+                  {
+                    children: [
+                      (0, s.jsx)("td", { children: star(a) }),
+                      (0, s.jsx)("td", { children: a.n }),
+                      (0, s.jsx)("td", { children: a.pos }),
+                      (0, s.jsx)("td", { children: a.y }),
+                      (0, s.jsx)("td", {
+                        children: `${(a.pts / Math.max(1, a.gp)).toFixed(1)} pts · ${(a.reb / Math.max(1, a.gp)).toFixed(1)} reb · ${a.seasons} yr`,
+                      }),
+                      (0, s.jsx)("td", { children: a.fate }),
+                      (0, s.jsx)("td", { className: "muted", children: now(a.n) || "—" }),
+                      (0, s.jsx)("td", { children: avg(a.n, a.fate) }),
+                    ],
+                  },
+                  alumKey(a)
+                )
+              ),
+            }),
+          ],
+        }),
+      }),
+    shown = [...al].reverse().filter((a) => kept.has(alumKey(a)) || favs.has(alumKey(a))),
+    allRows = [...al].reverse().filter((a) => !q.trim() || a.n.toLowerCase().includes(q.trim().toLowerCase()));
   return (0, s.jsxs)(s.Fragment, {
     children: [
       part !== "former" &&
@@ -18905,12 +19649,12 @@ function AlumniPanel({ g: e, part: part }) {
             children: [
               card(
                 "Retired jerseys",
-                ret.map((a) => [a.n, `${a.pts} pts \u00B7 ${a.seasons} seasons`]),
+                ret.map((a) => [a.n, `${a.pts} pts \u00B7 ${a.seasons} seasons`, a]),
                 "None yet"
               ),
               card(
                 "Draft picks",
-                dr.map((a) => [a.n, a.fate.replace("Drafted \u00B7 ", "") + ` \u00B7 ${a.y}`]),
+                dr.map((a) => [a.n, a.fate.replace("Drafted \u00B7 ", "") + ` \u00B7 ${a.y}`, a]),
                 "No draft picks yet"
               ),
               card(
@@ -18925,51 +19669,50 @@ function AlumniPanel({ g: e, part: part }) {
           }),
         }),
       part !== "honors" &&
-        (0, s.jsx)(qe, {
+        (0, s.jsxs)(qe, {
           title: "Former players",
-          meta: "Where your graduates, draft picks and transfers are now.",
-          children: al.length
-            ? (0, s.jsx)("div", {
-                className: "table-wrap",
-                children: (0, s.jsxs)("table", {
-                  children: [
-                    (0, s.jsx)("thead", {
-                      children: (0, s.jsx)("tr", {
-                        children: ["PLAYER", "POS", "LEFT", "CAREER WITH YOU", "WHAT HAPPENED", "NOW", "AVERAGING NOW"].map(
-                          (z) => (0, s.jsx)("th", { children: z }, z)
-                        ),
-                      }),
-                    }),
-                    (0, s.jsx)("tbody", {
-                      children: [...al]
-                        .reverse()
-                        .map((a, i) =>
-                          (0, s.jsxs)(
-                            "tr",
-                            {
-                              children: [
-                                (0, s.jsx)("td", { children: a.n }),
-                                (0, s.jsx)("td", { children: a.pos }),
-                                (0, s.jsx)("td", { children: a.y }),
-                                (0, s.jsx)("td", {
-                                  children: `${(a.pts / Math.max(1, a.gp)).toFixed(1)} pts \u00B7 ${(a.reb / Math.max(1, a.gp)).toFixed(1)} reb \u00B7 ${a.seasons} yr`,
-                                }),
-                                (0, s.jsx)("td", { children: a.fate }),
-                                (0, s.jsx)("td", { className: "muted", children: now(a.n) || "\u2014" }),
-                                (0, s.jsx)("td", { children: avg(a.n, a.fate) }),
-                              ],
-                            },
-                            i
-                          )
-                        ),
-                    }),
-                  ],
+          meta: "The former players you follow. Use Add favorites to pick them.",
+          children: [
+            (0, s.jsxs)("div", {
+              className: "fav-bar",
+              children: [
+                (0, s.jsx)("button", { type: "button", className: "btn", onClick: () => setAdding(!0), children: "Add favorites" }),
+                (0, s.jsx)("span", { className: "muted", children: `${favs.size} favorite${favs.size === 1 ? "" : "s"}` }),
+              ],
+            }),
+            shown.length
+              ? fTable(shown)
+              : (0, s.jsx)(yl, {
+                  title: al.length ? "No favorites yet" : "No former players yet",
+                  body: al.length
+                    ? `You have ${al.length} former player${al.length === 1 ? "" : "s"}. Add the ones you want to follow.`
+                    : "Graduates, draft picks and transfers will show up here. Then you can favorite the ones you want to follow.",
                 }),
-              })
-            : (0, s.jsx)(yl, {
-                title: "No former players yet",
-                body: "Graduates, draft picks and transfers will be tracked here.",
-              }),
+          ],
+        }),
+      part !== "honors" &&
+        adding &&
+        (0, s.jsxs)("div", {
+          className: "table-overlay",
+          role: "dialog",
+          "aria-modal": "true",
+          "aria-label": "Add favorites",
+          children: [
+            (0, s.jsx)("button", { type: "button", className: "table-close btn", onClick: () => setAdding(!1), children: "Close (Esc)" }),
+            (0, s.jsx)("h3", { children: `Add favorites \u00B7 ${favs.size} favorited` }),
+            (0, s.jsx)("input", {
+              type: "search",
+              className: "fav-search",
+              placeholder: "Search by name",
+              "aria-label": "Search former players by name",
+              value: q,
+              onChange: (ev) => setQ(ev.target.value),
+              autoFocus: !0,
+            }),
+            allRows.length
+              ? fTable(allRows)
+              : (0, s.jsx)("p", { className: "muted", children: "No former players match." }),
+          ],
         }),
     ],
   });
@@ -19143,7 +19886,7 @@ function TeamHistory({ g: e, part: part }) {
   });
 }
 
-function a0({ g: e }) {
+function a0({ g: e, run: run }) {
   let [t, l] = (0, N.useState)("Seasons");
   return (0, s.jsxs)(s.Fragment, {
     children: [
@@ -19171,8 +19914,8 @@ function a0({ g: e }) {
           : t === "Leaders" || t === "Best seasons" || t === "Game records"
             ? (0, s.jsx)(HistoryLeaders, { h: e.history, g: e, part: t })
             : t === "Program honors"
-              ? (0, s.jsx)(AlumniPanel, { g: e, part: "honors" })
-              : (0, s.jsx)(AlumniPanel, { g: e, part: "former" }),
+              ? (0, s.jsx)(AlumniPanel, { g: e, part: "honors", run: run, key: "honors" })
+              : (0, s.jsx)(AlumniPanel, { g: e, part: "former", run: run, key: "former" }),
     ],
   });
 }
@@ -19333,7 +20076,7 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
     drawer: !0,
     children: [
       (0, s.jsxs)("div", {
-        className: "profile-top",
+        className: "profile-top trading-card",
         children: [
           (0, s.jsx)(Ja, { p: e, size: "large" }),
           (0, s.jsxs)("div", {
@@ -19344,6 +20087,7 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
                 children: [
                   (0, s.jsx)(he, { tone: "orange", children: e.pos2 ? e.pos + " / " + e.pos2 : e.pos }),
                   (0, s.jsx)(he, { tone: "blue", children: W_arch(e) }),
+                  (0, s.jsx)(he, { children: Zl(e).toUpperCase() }),
                   (0, s.jsxs)("span", { className: "muted", children: ["#", e.number] }),
                   e.injury > 0 && (0, s.jsx)(he, { tone: "red", children: e.susp ? (e.susp === 2 ? "INELIGIBLE" : "SUSPENDED") : "INJURED" }),
                 ],
@@ -19366,13 +20110,35 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
           }),
           (0, s.jsxs)("div", {
             className: "profile-overall",
-            children: [
-              (0, s.jsx)("strong", { children: Tt(e) }),
-              (0, s.jsx)("span", { children: "OVERALL" }),
-            ],
+            children: (0, s.jsx)(RatingRing, { value: Tt(e), label: "OVERALL", size: "big" }),
           }),
         ],
       }),
+      o &&
+        e.origin !== "Walk-on" &&
+        (0, s.jsxs)("div", {
+          className: "rp-strip",
+          "aria-label": "Recruiting summary",
+          children: [
+            e.status === "Available" &&
+              (0, s.jsxs)("div", {
+                className: "rp-strip-item chance",
+                children: [(0, s.jsx)(RatingRing, { value: `${Nn(a, e, d, y)}%`, label: "SIGN" }), (0, s.jsx)("span", { children: "SIGNING CHANCE" })],
+              }),
+            (0, s.jsxs)("div", {
+              className: "rp-strip-item",
+              children: [(0, s.jsxs)("b", { children: [Math.round(e.interest), "%"] }), (0, s.jsx)("span", { children: "INTEREST" })],
+            }),
+            (0, s.jsxs)("div", {
+              className: "rp-strip-item",
+              children: [(0, s.jsx)("b", { children: q(e.ask || 0) }), (0, s.jsx)("span", { children: "NIL ASK / YEAR" })],
+            }),
+            (0, s.jsxs)("div", {
+              className: "rp-strip-item",
+              children: [(0, s.jsx)("b", { children: Object.keys(e.pitched || {}).length }), (0, s.jsx)("span", { children: "PITCHES MADE" })],
+            }),
+          ],
+        }),
       rsAsk &&
         (0, s.jsx)(Ao, {
           title: "Redshirt conversation",
