@@ -12,7 +12,7 @@ th{letter-spacing:.5px;font-size:.8125rem;text-transform:uppercase}
 
 /* the whole app takes the school's colour */
 .app-shell{--orange:var(--team)}
-.app-shell .btn.primary{background:var(--team);border-color:var(--team);color:#10131a;box-shadow:none}
+.app-shell .btn.primary{background:var(--team);border-color:var(--team);color:var(--on-team,#10131a);box-shadow:none}
 .app-shell .btn.primary:hover:not(:disabled){background:var(--team);border-color:var(--team);filter:brightness(1.14)}
 .app-shell .badge.orange{color:color-mix(in srgb,var(--team) 62%,#fff);background:color-mix(in srgb,var(--team) 13%,transparent);border-color:color-mix(in srgb,var(--team) 38%,transparent)}
 .app-shell :is(button,a,input,select):focus-visible{outline-color:var(--team)}
@@ -108,7 +108,7 @@ tbody tr:hover{background:#ffffff06}
   .workspace{height:100vh;overflow:hidden}
   .main{display:flex;flex-direction:column;gap:12px;height:calc(100vh - 58px);padding:12px 22px 56px;overflow:auto}
   .main>*{flex:none;margin:0}
-  .main>.panel:last-of-type,.main>.board-grid:last-child{flex:1 1 auto;min-height:110px;overflow:auto}
+  .main>.panel:last-of-type,.main>.board-grid:last-child{flex:none;overflow:visible}
   .footer{display:none}
   .page-heading{margin:0;gap:12px}
   .page-heading>div:first-child{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
@@ -164,7 +164,7 @@ tbody tr:hover{background:#ffffff06}
   .roster-grid .card-image-bottom,.core-grid .card-image-bottom{left:3px;right:auto;bottom:3px;gap:3px}
   .roster-grid .card-image-bottom span,.core-grid .card-image-bottom span{font-size:.62rem}
   .roster-grid .card-image-bottom .badge:not(.red),.core-grid .card-image-bottom .badge:not(.red){display:none}
-  .roster-grid+.panel{flex:1 1 0;min-height:40px;overflow:auto}
+  .roster-grid+.panel{flex:none;overflow:visible}
   .toolbar{margin:0}
 
   /* recruiting pages: banner and round bar become one slim strip each */
@@ -176,8 +176,8 @@ tbody tr:hover{background:#ffffff06}
   .footnote{display:none}
   .board-grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;overflow:auto}
   .board-card{padding:12px;gap:8px}
-  .board-grid{flex:1 1 auto;min-height:150px}
-  .board-grid+.panel{max-height:150px;overflow:auto;flex:none}
+  .board-grid{flex:none;overflow:visible}
+  .board-grid+.panel{flex:none}
   .main:has(.board-card){display:block;overflow:auto}.main:has(.board-card)>*{margin-bottom:12px}.main:has(.board-card) .board-grid{overflow:visible!important;flex:none!important;min-height:0}
 
   /* coaching / schedule / season / budget */
@@ -216,7 +216,7 @@ tbody tr:hover{background:#ffffff06}
 .drawer-backdrop .modal{animation:none}
 .modal:before{content:"";position:absolute;inset:0 0 auto 0;height:4px;border-radius:16px 16px 0 0;background:linear-gradient(90deg,var(--team,var(--orange)),color-mix(in srgb,var(--team,var(--orange)) 35%,#f5c542))}
 .modal:has(.ceremony):before{display:none}
-.modal .btn.primary{background:var(--team,var(--orange));border-color:var(--team,var(--orange));color:#10131a}
+.modal .btn.primary{background:var(--team,var(--orange));border-color:var(--team,var(--orange));color:var(--on-team,#10131a)}
 .modal .btn.primary:hover:not(:disabled){filter:brightness(1.12)}
 .modal>.eyebrow,.alert-modal>.eyebrow{display:inline-flex;align-self:flex-start;padding:4px 10px;border-radius:999px;font-size:.7rem;letter-spacing:1.2px;color:color-mix(in srgb,var(--team,var(--orange)) 70%,#fff);background:color-mix(in srgb,var(--team,var(--orange)) 14%,transparent);border:1px solid color-mix(in srgb,var(--team,var(--orange)) 35%,transparent)}
 .alert-modal h2,.modal>h2{font-size:1.55rem;letter-spacing:-.02em}
@@ -384,7 +384,355 @@ tr.row-injured .player-cell>img,tr.row-injured .player-cell .portrait{filter:gra
 #update-bar .update-go{flex:1;min-height:44px;padding:10px 14px;border:0;background:none;color:#ffe2b8;font:inherit;font-weight:600;text-align:left;cursor:pointer}
 #update-bar .update-later{width:44px;border:0;border-left:1px solid #e0a05055;background:none;color:#ffd9a0;font-size:1.3rem;cursor:pointer}
 @media (min-width:701px){#update-bar{left:auto;right:24px;width:380px;bottom:56px}}
-</style></head><body><div id="root"><div style="font-family:Arial;color:#f1f2f5;background:#0d1016;min-height:100vh;display:grid;place-content:center;text-align:center"><h1>COLLEGE DYNASTY</h1><p>Opening your desktop game…</p><noscript>Enable JavaScript in your browser to play.</noscript></div></div><script>/* phone / home-screen app: only on the website (the desktop app and a file opened from disk skip this) */
+
+/* ===== recruit tables: key numbers beside the name, less important parts shrink or hide ===== */
+.prospect-table td:first-child{white-space:normal;max-width:300px}
+.prospect-table td:nth-child(n+2):nth-child(-n+6){white-space:normal}
+.prospect-table td:last-child{flex-wrap:wrap;white-space:normal}
+
+/* ===== no sideways scrolling on desktop: tables may wrap their text, the tab row wraps ===== */
+.table-wrap table{white-space:normal}
+.table-wrap th,.table-wrap td{padding-left:8px;padding-right:8px}
+.chips{flex-wrap:wrap;max-width:100%}
+.stats-table th:not(:first-child),.stats-table td:not(:first-child){padding-left:6px;padding-right:6px}
+.stats-table td:first-child,.stats-table th:first-child{padding-right:14px}
+.top-scroll{margin:0}
+
+/* ===== nothing cut off at 1000 px: the reputation row and recruit cards wrap instead of overflowing ===== */
+.reputation>div:first-child{flex-wrap:wrap}
+.reputation .badge{white-space:normal}
+.board-card strong,.board-card span{overflow-wrap:anywhere}
+
+/* ===== design system (item 1): tokens first, then the shared component styles =====
+   Tokens: --ds-* variables. Components (React, src/js/0064c-DesignKit.js and 0064-group-Hy.js): Panel qe, Stat tile ca, Tabs, Table DataTable,
+   Badge he, Button X, Modal, Empty state yl, plus Sparkline and RatingBar. Each school's colour is the accent (--team); --on-team is the readable text on it. */
+:root{
+  /* colour: text on the dark surfaces is at least 4.5:1 (WCAG AA) */
+  --ds-bg:#0b0e14;--ds-surface:#121721;--ds-surface-2:#19202c;--ds-line:#252d3b;
+  --ds-text:#f1f2f5;--ds-text-2:#c9d0dc;--ds-text-muted:#a6afc1;--ds-text-faint:#8e99ae;
+  --ds-good:#6bd1a5;--ds-bad:#f48087;--ds-warn:#f5c542;--ds-info:#7fb2ff;
+  /* spacing scale (4 px steps) */
+  --ds-space-1:4px;--ds-space-2:8px;--ds-space-3:12px;--ds-space-4:16px;--ds-space-5:20px;--ds-space-6:24px;--ds-space-7:32px;--ds-space-8:40px;
+  /* type scale (rem; the root size is set by Settings > text size) */
+  --ds-text-xs:.75rem;--ds-text-sm:.875rem;--ds-text-md:1rem;--ds-text-lg:1.25rem;--ds-text-xl:1.5rem;--ds-text-2xl:2rem;
+  /* radii, shadows, motion */
+  --ds-radius-sm:6px;--ds-radius-md:8px;--ds-radius-lg:12px;--ds-radius-xl:16px;--ds-radius-pill:999px;
+  --ds-shadow-1:0 1px 2px #0006;--ds-shadow-2:0 8px 24px #0008;--ds-shadow-3:0 30px 120px #000c;
+  --ds-fast:120ms;--ds-base:200ms;--ds-slow:320ms;--ds-ease:cubic-bezier(.2,.8,.2,1);
+}
+/* faint text that was below 4.5:1 now uses the faint token */
+.nav-label,.news-date,.banner-season,.offline-controls .offline-label span{color:var(--ds-text-faint)}
+/* Tabs */
+.ds-tabs{flex-wrap:wrap;max-width:100%}
+.ds-tabs button{transition:background var(--ds-fast) var(--ds-ease),color var(--ds-fast) var(--ds-ease)}
+.ds-tabs button:hover:not(.active){background:#ffffff0d;color:var(--ds-text)}
+.ds-count{margin-left:6px;padding:0 6px;border-radius:var(--ds-radius-pill);background:#ffffff14;font-size:var(--ds-text-xs)}
+/* Sparkline */
+.ds-spark{width:100%;height:26px;display:block}
+.ds-spark polyline{stroke:var(--team,var(--orange));stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ds-spark circle{fill:var(--team,var(--orange))}
+.ds-spark.good polyline{stroke:var(--ds-good)}.ds-spark.good circle{fill:var(--ds-good)}
+.ds-spark.bad polyline{stroke:var(--ds-bad)}.ds-spark.bad circle{fill:var(--ds-bad)}
+/* RatingBar */
+.ds-bar{display:grid;grid-template-columns:minmax(64px,auto) 1fr 2.2em;align-items:center;gap:var(--ds-space-2);font-size:var(--ds-text-sm)}
+.ds-bar:not(:has(.ds-bar-label)){grid-template-columns:1fr 2.2em}
+.ds-bar-label{color:var(--ds-text-muted);white-space:nowrap}
+.ds-bar-track{display:block;height:8px;border-radius:var(--ds-radius-pill);background:#232b39;overflow:hidden}
+.ds-bar-track i{display:block;height:100%;border-radius:inherit;background:var(--ds-info);transition:width var(--ds-base) var(--ds-ease)}
+.ds-bar-track.great i{background:var(--ds-good)}.ds-bar-track.ok i{background:var(--ds-warn)}.ds-bar-track.low i{background:var(--ds-bad)}
+.ds-bar-num{text-align:right;font-variant-numeric:tabular-nums}
+.ds-modal.wide{max-width:min(1100px,calc(100vw - 32px))}
+
+/* ===== shared Table (item 2): numbers right-aligned and tabular, clear header, hover, sort arrow, filter chips, Expand ===== */
+.ds-num{text-align:right!important;font-variant-numeric:tabular-nums}
+.ds-table-box{position:relative}
+.ds-table-box>.chips{margin:var(--ds-space-3) 0 var(--ds-space-2)}
+.ds-table-wrap{margin-top:0}
+.ds-table th{background:#0f141d;color:var(--ds-text-muted);border-bottom:1px solid var(--ds-line);font-weight:700}
+.ds-table th.sorted{color:var(--ds-text)}
+.ds-table td{border-top:1px solid #1c2330}
+.ds-table tbody tr{transition:background var(--ds-fast) var(--ds-ease)}
+.ds-table tbody tr:hover{background:#ffffff0a}
+.ds-table tr.you-row td{background:color-mix(in srgb,var(--team,var(--orange)) 12%,transparent)}
+.ds-sort{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:4px;cursor:pointer;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;max-width:100%}
+.ds-num .ds-sort{flex-direction:row-reverse}
+.ds-sort:focus-visible{outline:2px solid var(--team,var(--orange));outline-offset:2px;border-radius:4px}
+.ds-arrow{font-size:.7em;opacity:.55}
+th.sorted .ds-arrow{opacity:1;color:var(--team,var(--orange))}
+.ds-empty{padding:var(--ds-space-4) var(--ds-space-2)}
+button.table-expand{position:absolute;top:-34px;right:0;width:30px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--ds-line);border-radius:var(--ds-radius-md);background:var(--ds-surface-2);color:var(--ds-text-2);font-size:1rem;line-height:1;cursor:pointer}
+button.table-expand:hover{border-color:var(--team,var(--orange));color:var(--ds-text)}
+.ds-table-box:has(>button.table-expand){margin-top:34px}
+.table-overlay{position:fixed;inset:0;z-index:9000;overflow:auto;padding:56px 24px 24px;background:var(--ds-bg)}
+.table-overlay .table-close{position:fixed;top:12px;right:16px;z-index:1}
+.table-overlay .table-wrap{overflow:visible}
+.table-overlay table{font-size:.85rem}
+.table-overlay th,.table-overlay td{padding:5px 8px}
+
+/* ===== Program HQ dashboard (item 3): the "do this next" card is the loudest thing on the page ===== */
+.hq-next{display:flex;align-items:center;justify-content:space-between;gap:var(--ds-space-4);flex-wrap:wrap;padding:var(--ds-space-4) var(--ds-space-6);border-radius:var(--ds-radius-lg);border:1px solid color-mix(in srgb,var(--team,var(--orange)) 55%,var(--ds-line));background:linear-gradient(100deg,color-mix(in srgb,var(--team,var(--orange)) 22%,var(--ds-surface)),var(--ds-surface) 70%);box-shadow:var(--ds-shadow-1),inset 4px 0 0 var(--team,var(--orange))}
+.hq-next>div{flex:1 1 280px;min-width:0}
+.hq-next .eyebrow{margin:0 0 2px;color:color-mix(in srgb,var(--team,var(--orange)) 55%,#fff)}
+.hq-next h2{font-size:var(--ds-text-xl);line-height:1.2;margin:0;letter-spacing:-.02em}
+.hq-next p{margin:2px 0 0;color:var(--ds-text-2);font-size:var(--ds-text-sm)}
+.hq-next .btn{min-height:44px;padding:0 var(--ds-space-6);font-size:var(--ds-text-md)}
+.hq-next.ready{border-color:color-mix(in srgb,var(--ds-good) 50%,var(--ds-line));box-shadow:var(--ds-shadow-1),inset 4px 0 0 var(--ds-good)}
+.metrics .metric svg.ds-spark,.metric svg.ds-spark{width:100%;height:22px;margin-top:var(--ds-space-2);opacity:.9}
+.reputation svg.ds-spark{width:100%;height:24px;margin-top:var(--ds-space-2)}
+.news-icon svg{width:15px;height:15px}
+
+/* ===== My roster and player profile (item 4) ===== */
+/* player cards: a rating bar under the name, the position as a badge on the photo */
+.player-card:has(.ds-bar) .card-image .overall{display:none}.player-card .ds-bar{font-size:.76rem;margin:3px 0 1px}
+.player-card .ds-bar-num{font-size:.95rem}
+.player-card .ds-bar-track{height:6px}
+.card-image-bottom>span:first-child{padding:1px 7px;border-radius:var(--ds-radius-pill);background:#0b0e14d9;border:1px solid color-mix(in srgb,var(--team,var(--orange)) 55%,#3a4454);color:#fff;font-weight:700}
+/* one photo shape and a few fixed sizes wherever a player appears (cards 92, profile 96, lists 40, small 52) */
+.portrait.tiny,.portrait.small,.portrait.large{border-radius:var(--ds-radius-md);border:1px solid #374050}
+.portrait.tiny{width:40px;height:40px}
+.portrait.small{width:52px;height:52px}
+/* profile: attributes grouped into Shooting, Skill, Defense, Athleticism, each with its average */
+.attr-group-head{display:flex;justify-content:space-between;align-items:center}
+.attr-group-head span{font-size:var(--ds-text-sm);color:var(--ds-text-2);padding:0 8px;border-radius:var(--ds-radius-pill);background:#ffffff12}
+.attributes-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+/* growth chart: one bar per season */
+.growth-chart{margin-top:var(--ds-space-3);padding:var(--ds-space-3) var(--ds-space-4);border:1px solid var(--ds-line);border-radius:var(--ds-radius-lg);background:var(--ds-surface-2)}
+.growth-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--ds-space-3);flex-wrap:wrap}
+.growth-head h3{margin:0}
+.growth-svg{width:100%;height:56px;display:block;margin-top:var(--ds-space-2)}
+.growth-svg rect{fill:color-mix(in srgb,var(--team,var(--orange)) 45%,#5a6577)}
+.growth-svg rect.now{fill:var(--team,var(--orange))}
+.growth-labels{display:flex;gap:var(--ds-space-2);margin-top:4px;font-size:var(--ds-text-xs);color:var(--ds-text-muted)}
+.growth-labels span{flex:1;display:flex;flex-direction:column;align-items:center;min-width:0}
+.growth-labels b{color:var(--ds-text);font-weight:700}
+
+/* ===== Motion, feedback, keyboard focus (item 10) ===== */
+/* a visible ring on EVERYTHING you can reach with the keyboard (school color, plus a thin dark gap so it shows on any background) */
+:where(button,a[href],input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--team,#f27935);outline-offset:2px;box-shadow:0 0 0 4px #0b0e14}
+:where(input,select,textarea):focus-visible{outline-offset:0}
+/* subtle motion: hovers and presses ease in; everything stops when the system asks for reduced motion (rule at the top of this file) */
+.btn,.icon-btn,.text-button,.chips button,.sidebar nav button,.check-row,.player-card,.board-card,.school-card,.plan-card,.metric.clickable{transition:background-color var(--ds-fast) var(--ds-ease),border-color var(--ds-fast) var(--ds-ease),color var(--ds-fast) var(--ds-ease),transform var(--ds-fast) var(--ds-ease),box-shadow var(--ds-fast) var(--ds-ease),filter var(--ds-fast) var(--ds-ease)}
+.player-card:hover,.board-card:hover,.school-card:hover,.metric.clickable:hover{transform:translateY(-1px)}
+.btn:active:not(:disabled),.icon-btn:active,.plan-card:active{transform:scale(.98)}
+.meter span,.min-bar i,.rot-bar i{transition:width var(--ds-base) var(--ds-ease)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+/* loading: the start-up screen spins, and while the game saves the bottom-bar spinner already turns */
+.boot-spin{width:34px;height:34px;margin:0 auto 14px;border-radius:50%;border:3px solid #2a3140;border-top-color:#f27935;animation:bootspin .9s linear infinite}
+@keyframes bootspin{to{transform:rotate(360deg)}}
+/* empty states: a table with nothing to show, and the shared empty box */
+.ds-empty{text-align:center;color:var(--ds-text-muted)}
+.empty{padding:var(--ds-space-7) var(--ds-space-4);text-align:center}
+.empty svg{opacity:.7}
+/* touch screens: the pop-up close button and every icon button are finger-sized */
+@media (pointer:coarse){.heading-actions .btn,.heading-actions .btn.primary{min-height:44px}.icon-btn,.modal-close,.icon-btn.close{min-width:44px;min-height:44px}.chips button,.plan-card,.text-button,summary{min-height:44px}}
+
+/* ===== Phone (390 px): no table scrolls sideways. Text wraps anywhere, type and padding shrink, every column stays. ===== */
+@media (max-width:760px){
+  .table-wrap,.ds-table-wrap{overflow-x:visible}
+  .table-wrap table,table.ds-table{width:100%;table-layout:auto;font-size:.72rem}
+  .table-wrap th,.table-wrap td{padding:5px 3px!important;overflow-wrap:anywhere;word-break:break-word;white-space:normal!important;min-width:0!important;text-align:left}
+  .table-wrap th{font-size:.58rem;letter-spacing:0!important}
+  .table-wrap .ds-num,.table-wrap td.ds-num,.table-wrap th.ds-num{text-align:right!important}
+  .table-wrap strong,.table-wrap td strong{font-size:.78rem}
+  .table-wrap .player-cell{gap:4px;min-width:0}
+  .table-wrap .player-cell>div{min-width:0}
+  .table-wrap .portrait.tiny,.table-wrap .portrait.small{width:26px;height:26px;border-radius:6px}
+  .table-wrap .table-sub,.table-wrap small{font-size:.6rem}
+  .table-wrap .btn.small{padding:3px 5px;font-size:.66rem}
+  .table-wrap select{max-width:100%;font-size:.7rem;padding:2px 14px 2px 4px}
+  .table-wrap input{max-width:100%;min-width:0;font-size:.75rem}
+  .table-wrap .badge{padding:1px 3px;font-size:.6rem}
+  .table-wrap .meter{width:100%;min-width:20px}
+  .ds-sort{flex-wrap:wrap;gap:1px}
+  .top-scroll{display:none}
+  .table-overlay{padding:52px 8px 12px}
+  .main{padding-left:8px!important;padding-right:8px!important}
+  .panel,.board-card{border-radius:10px}
+  .table-wrap th,.table-wrap td{padding-left:2px!important;padding-right:2px!important}
+  .table-wrap th{overflow-wrap:normal;word-break:normal;font-size:.54rem}
+  .table-wrap td select,.table-wrap td input{width:100%!important;max-width:100%!important;min-width:0!important}
+  .table-wrap td .btn,.table-wrap td .btn.small{white-space:normal!important;max-width:100%;overflow-wrap:anywhere}
+  .table-wrap td select{text-overflow:ellipsis}
+  .table-wrap .guarantee-option{white-space:normal;flex-direction:column;align-items:flex-start;gap:2px;font-size:.62rem}
+  .table-wrap .guarantee-option small{font-size:.55rem;padding-top:0}
+  .table-wrap .guarantee-option input{width:16px!important;height:16px}
+  .table-wrap table.stats-table th,.table-wrap table.stats-table td{font-size:.5rem;padding-left:1px!important;padding-right:1px!important}
+  .table-wrap table.stats-table th{font-size:.46rem}
+  .table-wrap table.stats-table td:first-child strong{font-size:.55rem}
+  .stats-table td:first-child .player-cell>.portrait,.stats-table td:first-child .portrait{display:none}
+  .prospect-table.ds-table{table-layout:fixed}
+  .prospect-table.ds-table th:first-child,.prospect-table.ds-table td:first-child{width:21%;max-width:none}
+  .prospect-table.ds-table th:last-child,.prospect-table.ds-table td:last-child{width:14%}
+  .prospect-table.ds-table th{overflow-wrap:anywhere;word-break:break-word}
+  .table-wrap .ds-arrow{display:none}
+  .table-wrap .portrait.tiny,.table-wrap .portrait.small{width:20px;height:20px}
+  .table-wrap{font-size:.66rem}
+  .prospect-table .meter{width:100%!important;min-width:0!important}
+  .recruit-table{padding:0}
+  .table-wrap .rt-bar{min-width:0;width:100%}
+  .table-wrap .rt-bar .meter{max-width:none;min-width:0!important;width:100%!important}
+  .rt-bar .meter{max-width:none;min-width:0}
+  .table-wrap .stars{display:flex;flex-wrap:nowrap}
+  .table-wrap .stars svg{width:8px!important;height:8px!important}
+  .table-wrap .stars span{font-size:.55rem}
+  .rt-actions{max-width:50px!important;flex-wrap:wrap}
+  .rt-actions .btn.small{min-width:0;padding:2px 3px}
+  .rival-tag{font-size:.55rem!important;max-width:44px!important;padding:1px 3px!important;border-radius:6px}
+  .prospect-table .player-cell span,.prospect-table .player-cell em{font-size:.6rem}
+  .roster-grid .card-image{overflow:hidden}
+}
+
+/* ===== Charts (item 8): revenue share bar, budget and market lines, position index bars ===== */
+.ds-chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--ds-space-4);padding:var(--ds-space-3) var(--ds-space-4) var(--ds-space-2)}
+.ds-chart-title{margin:0 0 var(--ds-space-2);font-size:var(--ds-text-sm);color:var(--ds-text-2);letter-spacing:.3px}
+.ds-chart{min-width:0}
+.panel>.ds-chart{padding:var(--ds-space-3) var(--ds-space-4) 0}
+.ds-share{display:flex;height:22px;border-radius:var(--ds-radius-md);overflow:hidden;gap:2px;background:#232b39}
+.ds-share i{display:block;min-width:2px}
+.ds-legend{display:flex;flex-wrap:wrap;gap:6px var(--ds-space-4);margin-top:var(--ds-space-2);font-size:var(--ds-text-xs);color:var(--ds-text-2)}
+.ds-legend span{display:inline-flex;align-items:center;gap:6px}
+.ds-legend em{font-style:normal;color:var(--ds-text-muted)}
+.ds-legend .dot{display:inline-block;width:10px;height:10px;border-radius:3px}
+.ds-line{width:100%;max-width:640px;height:auto;display:block}
+.ds-line text{fill:var(--ds-text-muted);font-size:14px}
+.ds-chart-row .ds-line text{font-size:19px}
+.ds-line .grid{stroke:#2a3342;stroke-width:1}
+.ds-bars{display:flex;flex-direction:column;gap:6px;padding:var(--ds-space-3) var(--ds-space-4) 0;max-width:560px}
+.ds-bars-row{display:grid;grid-template-columns:34px 1fr 48px;align-items:center;gap:var(--ds-space-2);font-size:var(--ds-text-sm)}
+.ds-bars-row b{text-align:right;font-variant-numeric:tabular-nums}
+.ds-bars-track{position:relative;height:12px;border-radius:var(--ds-radius-pill);background:#232b39}
+.ds-bars-track:before{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--ds-text-faint)}
+.ds-bars-track i{position:absolute;top:0;bottom:0;border-radius:var(--ds-radius-pill)}
+.ds-bars-track i.up{background:var(--ds-bad)}
+.ds-bars-track i.down{background:var(--ds-good)}
+
+/* ===== Schedule and stats tables fit at 1000 px in the offseason too (item 7) ===== */
+.table-wrap td select{max-width:210px;text-overflow:ellipsis}
+.table-wrap td select[aria-label$="venue"]{max-width:104px}
+@media (max-width:1250px){
+  .table-wrap td select{padding-left:8px;font-size:.85rem}
+  .table-wrap th,.table-wrap td{padding-left:5px;padding-right:5px}
+  .table-wrap td select[aria-label$="venue"]{max-width:92px}
+  .stats-table{font-size:.8rem}
+  .stats-table th,.stats-table td{padding-left:3px!important;padding-right:3px!important}
+  .stats-table th{font-size:.66rem;letter-spacing:0}
+  .stats-table td:first-child,.stats-table th:first-child{padding-right:6px!important}
+  .stats-table td:first-child{max-width:170px;white-space:normal}
+  .stats-table .table-sub{font-size:.7rem}
+}
+
+/* ===== Game Day (item 7): bigger scoreboard, readable play-by-play, clear halftime panel ===== */
+.gd-board{padding:var(--ds-space-5) var(--ds-space-6);gap:var(--ds-space-4);margin:var(--ds-space-3) 0 var(--ds-space-2)}
+.gd-team span{font-size:1.05rem;font-weight:700;color:var(--ds-text-2)}
+.gd-team strong{font-size:4rem;letter-spacing:-.03em}
+.gd-clock{min-width:150px;padding:var(--ds-space-2) var(--ds-space-4)}
+.gd-clock small{font-size:.72rem;letter-spacing:1.4px}
+.gd-clock b{font-size:1.9rem}
+.gd-clock.pause{border-color:var(--ds-warn);background:#2a2412}
+.gd-clock.pause b{font-size:1.35rem;letter-spacing:.06em}
+.gd-feed{max-height:38vh;gap:6px}
+.gd-feed .season-game{padding:9px 14px;font-size:1rem;line-height:1.35;grid-template-columns:64px 1fr auto}
+.gd-feed .gd-time{font-size:.85rem;color:var(--ds-text-muted)}
+.gd-feed .season-game.score{border-left:3px solid var(--team,var(--orange))}
+.gd-feed .season-game.score .gd-play{font-size:1.05rem}
+.gameday .ceremony-scroll h3{display:flex;align-items:center;gap:var(--ds-space-2);margin:var(--ds-space-4) 0 var(--ds-space-2);font-size:var(--ds-text-md)}
+.gameday .ceremony-scroll h3:before{content:"";width:4px;height:1.1em;border-radius:2px;background:var(--team,var(--orange))}
+.gameday .stat-trio strong{font-size:1.15rem}
+@media (min-width:761px){.gameday .rp-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}}
+@media (max-width:760px){.gd-team strong{font-size:2.6rem}.gd-clock{min-width:0}.gd-clock b{font-size:1.2rem}.gd-board{padding:var(--ds-space-3)}}
+
+/* ===== Bracket in the Season center (item 7): the Expand button sits in the corner of the bracket ===== */
+.bt-box{margin-top:34px}
+.bt-box>.bt{margin:0}
+.table-overlay .bt-scroll{overflow:hidden}
+
+/* ===== Coaching (item 6): court that never clips, readable fit tags, plan cards, rotation bar ===== */
+@media (min-width:1000px){
+  .court{height:350px!important}
+  .court-player{width:120px;transform:translate(-50%)!important}
+  .slot-3,.slot-4{top:10px!important}
+  .slot-1,.slot-2{top:122px!important}
+  .slot-0{top:226px!important}
+  .slot-1{left:15%!important}.slot-2{left:85%!important}
+}
+.court-player strong{white-space:nowrap}
+.court-player>small{white-space:nowrap;font-size:.8rem}
+.court-portrait>span{box-shadow:0 1px 4px #0008}
+.court-player .position-note,.court-player .position-warning{white-space:nowrap;font-size:.72rem}
+.fit-chips{display:flex;flex-wrap:wrap;gap:6px}
+.fit-chips span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:var(--ds-radius-pill);font-size:var(--ds-text-xs);font-weight:600;line-height:1.3}
+.fit-chips .good:before{content:"\2713";font-weight:800}
+.fit-chips .bad:before{content:"!";font-weight:800}
+.fit-chips .good{background:#1f3b2c;color:#9be8b6;border:1px solid #2f6a49}
+.fit-chips .bad{background:#3e2327;color:#f6b0b8;border:1px solid #8a3a44}
+/* minutes plan: five cards, each with its own one-line description */
+.plan-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--ds-space-2)}
+.plan-card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:var(--ds-space-3);border:1px solid var(--ds-line);border-radius:var(--ds-radius-lg);background:var(--ds-surface-2);color:var(--ds-text-2);cursor:pointer;transition:border-color var(--ds-fast) var(--ds-ease),background var(--ds-fast) var(--ds-ease)}
+.plan-card strong{color:var(--ds-text);font-size:var(--ds-text-md)}
+.plan-card span{font-size:var(--ds-text-xs);line-height:1.35;color:var(--ds-text-muted)}
+.plan-card:hover{border-color:color-mix(in srgb,var(--team,var(--orange)) 60%,var(--ds-line))}
+.plan-card.active{border-color:var(--team,var(--orange));background:color-mix(in srgb,var(--team,var(--orange)) 16%,var(--ds-surface-2));box-shadow:inset 0 0 0 1px var(--team,var(--orange))}
+.plan-card.active strong:after{content:" \2713";color:var(--team,var(--orange))}
+.plan-card:focus-visible{outline:2px solid var(--team,var(--orange));outline-offset:2px}
+/* rotation minutes bar */
+.rot-bar{display:flex;height:26px;border-radius:var(--ds-radius-md);overflow:hidden;background:#232b39;gap:2px}
+.rot-bar i{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;font-style:normal;font-size:.68rem;font-weight:700;color:#e8edf5;background:#4a5a72;white-space:nowrap}
+.rot-bar i.starter{background:var(--team,var(--orange));color:var(--on-team,#10131a)}
+.rot-legend{display:flex;flex-wrap:wrap;gap:var(--ds-space-3);margin-top:var(--ds-space-2);font-size:var(--ds-text-xs);color:var(--ds-text-muted)}
+.rot-legend .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;background:#4a5a72}
+.rot-legend .dot.starter{background:var(--team,var(--orange))}
+/* per-player minutes bar in the table */
+.min-bar{height:8px;width:100%;max-width:90px;margin-top:6px;border-radius:var(--ds-radius-pill)}
+.min-bar i{border-radius:inherit}
+
+/* ===== Recruiting, all four tabs (item 5): shared table, bars, rival tag, chip filters ===== */
+.recruit-table{padding:0 var(--ds-space-2) var(--ds-space-2)}
+.recruit-table .ds-table-wrap{margin:0}
+.recruit-filters{gap:var(--ds-space-2) var(--ds-space-3);align-items:center}
+.recruit-filters .ds-tabs button,.toolbar .ds-tabs button{padding:5px 10px;font-size:var(--ds-text-sm)}
+.rt-bar{display:flex;flex-direction:column;gap:3px;min-width:52px}
+.rt-bar strong{font-variant-numeric:tabular-nums}
+.rt-bar .meter{width:100%;max-width:72px;margin-left:auto}
+.rival-tag{display:inline-block;padding:2px 8px;border-radius:var(--ds-radius-pill);font-size:var(--ds-text-xs);font-weight:700;line-height:1.4;border:1px solid}
+.rival-tag.you{color:var(--ds-good);background:#6bd1a514;border-color:#6bd1a555}
+.rival-tag.them{color:var(--ds-bad);background:#f4808714;border-color:#f4808755}
+.prospect-table tr.row-signed td{background:#6bd1a50d}
+.prospect-table tr.row-target td:first-child{box-shadow:inset 3px 0 0 var(--team,var(--orange))}
+.prospect-table.ds-table td:last-child{display:table-cell;white-space:nowrap}
+.prospect-table.ds-table td,.prospect-table.ds-table th{padding:7px 6px}
+.prospect-table.ds-table th{font-size:.72rem;letter-spacing:.3px;white-space:normal;vertical-align:bottom}
+.prospect-table.ds-table td{min-width:0!important}
+.prospect-table.ds-table td:first-child{max-width:240px}
+.prospect-table.ds-table .ds-arrow{flex:none}
+@media (max-width:1299px){
+  .prospect-table.ds-table .ds-sort{flex-wrap:wrap;column-gap:3px;row-gap:0}
+  .prospect-table.ds-table td,.prospect-table.ds-table th{padding:6px 4px}
+  .prospect-table.ds-table{font-size:.84rem}
+  .prospect-table.ds-table td strong{font-size:.88rem}
+  .prospect-table.ds-table .rival-tag{font-size:.66rem;max-width:84px;padding:2px 6px}
+  .prospect-table.ds-table .stars span{font-size:.68rem;letter-spacing:0}
+  .prospect-table.ds-table .stars svg{width:10px;height:10px}
+  .prospect-table.ds-table td.muted,.prospect-table.ds-table .table-sub{font-size:.74rem}
+  .prospect-table.ds-table th{font-size:.66rem;letter-spacing:0}
+}
+.rival-tag{white-space:normal;max-width:120px}
+.prospect-table.ds-table .player-cell span{font-size:.78rem}
+.rt-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap;max-width:112px;margin-left:auto}
+.prospect-table.ds-table td:last-child{white-space:normal}
+@media (min-width:1300px){.rt-actions{flex-wrap:nowrap;max-width:none}}
+.rt-actions .btn.small{padding:4px 8px;min-height:30px;font-size:.8rem}
+.rt-actions .icon-btn{width:30px;height:30px;min-height:30px}
+.rt-actions select{min-height:30px;padding:2px 20px 2px 6px;font-size:.78rem;width:auto}
+/* the offer box stays pinned to the bottom of the recruit profile on every screen size */
+/* touch screens: sortable headers and the row buttons are finger-sized */
+@media (pointer:coarse){
+  .ds-sort{min-height:44px}
+  .rt-actions .btn.small,.rt-actions .icon-btn,.rt-actions select{min-height:44px}
+  .rt-actions .icon-btn{width:44px}
+  .lineup-selectors select{min-height:44px}
+}
+@media (max-width:999px){.modal .offer-footer{position:sticky;bottom:0;z-index:3;background:#131924;box-shadow:0 -12px 24px #000a}}
+</style></head><body><div id="root"><div style="font-family:Arial;color:#f1f2f5;background:#0d1016;min-height:100vh;display:grid;place-content:center;text-align:center"><h1>COLLEGE DYNASTY</h1><div class="boot-spin" aria-hidden="true"></div><p role="status">Opening your desktop game…</p><noscript>Enable JavaScript in your browser to play.</noscript></div></div><script>/* phone / home-screen app: only on the website (the desktop app and a file opened from disk skip this) */
 if(/^https?:$/.test(location.protocol)){var m=document.createElement("link");m.rel="manifest";m.href="manifest.webmanifest";document.head.appendChild(m);if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 /* touch screens have no mouse hover: tapping something that has a hover hint shows the hint for a moment */
 if(matchMedia("(hover:none)").matches)document.addEventListener("click",function(e){var t=e.target.closest&&e.target.closest("[title]");if(!t||!t.title||t.closest("button,a,select,input,label"))return;var d=document.getElementById("tap-hint")||document.body.appendChild(Object.assign(document.createElement("div"),{id:"tap-hint"}));d.textContent=t.title;d.className="show";clearTimeout(d._t);d._t=setTimeout(function(){d.className=""},2600)});
@@ -2226,11 +2574,12 @@ function ry(e, a, t) {
 // withdraw: chance an entrant changes his mind and stays; pvisits: your campus visits in one portal window (an estimate)
 // netCr: bonus for finishing first (x1), second (x0.6) or third (x0.3) in the conference standings;
 // rivalry: rating gap multiplier in rivalry games (1 = off);
+// winNow: share of the money left that auto-recruit may spend on one player after a season in which several top-8-level players left (0 = off);
 // stagger: auto-recruit score per step of class balance (a class year that already has 3+ players graduating together is avoided; empty ones are favored), 0 = off;
 // netCn: bonus for each team a conference has above 10 (bigger leagues send more teams);
 // netW / netR: weight of win % and of team rating in W_net; netSos / netCs / netQ1 / netQ2: how much the tournament ranking (W_net) credits a hard schedule, a strong conference, and wins over the top (Q1) and next (Q2) quadrant
 // tend: 1 = player tendencies change who shoots/passes/rebounds/steals in ny; 0 = off (the old engine)
-var TUNE = { u: 1, f: 0.003, o2: 0.505, o3: 0.335, d2: 0.505, d3: 0.335, sk: 0.0008, b: 0.2, tend: 1, portal: 1.5, portalShow: 170, withdraw: 0.05, pvisits: 3, ovisits: 5, ovBonus: 8, foulOut: 5, sf: 0.11, nf: 0.216, bonus1: 7, bonus2: 10, timeouts: 4, toRun: 4, toBoost: 0.012, toCarry: 3, toLate: 180, shotClock: 30, heat: 0.07, mom: 0.04, scShift: 0.03, closeSecs: 240, blowSecs: 430, hackSecs: 50, pollStep: 0.3, stagger: 1, rivalry: 0.85, netCr: 46, netCn: 9, netW: 65, netR: 0.45, netSos: 0.5, netCs: 0.45, netQ1: 2, netQ2: 0.6 };
+var TUNE = { u: 1, f: 0.003, o2: 0.505, o3: 0.335, d2: 0.505, d3: 0.335, sk: 0.0008, b: 0.2, tend: 1, portal: 1.5, portalShow: 170, withdraw: 0.05, pvisits: 3, ovisits: 5, ovBonus: 8, foulOut: 5, sf: 0.11, nf: 0.216, bonus1: 7, bonus2: 10, timeouts: 4, toRun: 4, toBoost: 0.012, toCarry: 3, toLate: 180, shotClock: 30, heat: 0.07, mom: 0.04, scShift: 0.03, closeSecs: 240, blowSecs: 430, hackSecs: 50, pollStep: 0.3, stagger: 1, winNow: 0.35, rivalry: 0.85, netCr: 60, netCn: 9, netW: 65, netR: 0.45, netSos: 0.5, netCs: 0.45, netQ1: 2, netQ2: 0.6 };
 
 function ny(e, a, op) {
   let t = uy(e),
@@ -3340,8 +3689,9 @@ function confSizes(R) {
 }
 function confTeams(e, t, uid, x) {
   // rating the generic conference mates are picked around, by tier (item 15: tier 1 was 73, which left a small-budget
-  // school 5th of 10 in a one-bid league and in the tournament ~10% of the time against a ~20% target)
-  let c = [72, 71, 74, 77, 82][t],
+  // school 5th of 10 in a one-bid league and in the tournament ~10% of the time against a ~20% target). Tier 1 71 -> 68 and
+  // tier 2 74 -> 71 when the AI prestige fix (W_off) stopped these leagues' generic teams from fading over the years.
+  let c = [72, 68, 71, 77, 82][t],
     pt = e.opponents.filter(
       (o) => o.id !== uid && Xl.some((h) => h.id === o.id && tierOf({ school: h }) === t)
     ),
@@ -4127,8 +4477,9 @@ function W_dest(e, p) {
 function W_fire(e) {
   e.vac = [];
   for (let t of e.opponents) {
-    let g = t.wins + t.losses,
-      wp = g ? t.wins / g : 0.5,
+    let rc = W_t(e, t.id), // your conference mates' records are on their e.league copy
+      g = rc.wins + rc.losses,
+      wp = g ? rc.wins / g : 0.5,
       exp = 0.3 + ((t.rating - 46) / 48) * 0.5;
     t.fired = g >= 20 && wp < exp - 0.14 && ne(e) < 0.5;
     t.fired && Xl.some((h) => h.id === t.id) && e.vac.push(t.id);
@@ -4642,12 +4993,24 @@ function W_off(e, bd) {
   let sgn = {};
   for (let q of e.prospects)
     q.status === "Committed elsewhere" && q.committedTo && !q.landed && (sgn[q.committedTo] ||= []).push(q);
+  // Expected win share for the prestige change: fitted on ~4,800 AI team seasons (own rating and the conference's
+  // mean rating, both against the national mean). The old 0.3 + (rating - 46) / 96 ignored the conference, so teams
+  // in a weak league kept gaining prestige (and recruits) and teams in a strong one kept losing it.
+  let rt = new Map(e.opponents.map((t) => [t.id, t.rating])),
+    am = e.opponents.reduce((q, t) => q + t.rating, 0) / e.opponents.length,
+    cmOf = new Map();
+  rt.set(e.school.id, Ps(e));
+  for (let c of e.confs || [])
+    for (let id of c) {
+      let v = c.filter((x) => x !== id).map((x) => rt.get(x)).filter((x) => x != null);
+      v.length && cmOf.set(id, v.reduce((q, x) => q + x, 0) / v.length);
+    }
   for (let t of e.opponents) {
     let R = ro[t.id] || [],
       keep = [],
       g = t.wins + t.losses,
       wp = g ? t.wins / g : 0.5,
-      exp = 0.3 + ((t.rating - 46) / 48) * 0.5,
+      exp = le(0.473 + 0.0213 * (t.rating - am) - 0.0122 * ((cmOf.get(t.id) ?? am) - am), 0.05, 0.95),
       cb = ((t.coach && t.coach.r) || 60) - 60;
     t.pr = le(Math.round((t.pr == null ? 50 : t.pr) + (wp - exp) * 22 + (wp > 0.78 ? 3 : 0)), 8, 95);
     let chg = !!t.fired;
@@ -6081,6 +6444,10 @@ function wS(e) {
     (e.result = ""),
     (e.signings = []),
     e.league.forEach((l) => {
+      // your conference mates' records live on this copy; hand them to W_off (it read 0-0, a .500 season, every year,
+      // so weak mates gained prestige and better recruits year after year and caught up by season 5)
+      let o = l.id !== e.school.id && e.opponents.find((z) => z.id === l.id);
+      o && ((o.wins = l.wins), (o.losses = l.losses));
       ((l.wins = 0),
         (l.losses = 0),
         (l.cw = 0),
@@ -7158,6 +7525,11 @@ function kS(e) {
       e.scouts > 0 &&
         y.scouted < (y.intl ? 1 : 2) &&
         (y.scouted++, e.scouts--, (y.progress += 8), (y.interest = Math.min(99, y.interest + 3))));
+  // Win-now signings (season 5 dip): after a season in which players at the level of the top 8 left (graduated, drafted,
+  // transferred), one pick per two of them may cost up to TUNE.winNow of the money left instead of the even share, so a
+  // ready-made transfer can replace a graduating core. Not in the first offseason (the class is being built then).
+  let k8 = [...e.roster].sort((x, z) => z.ovr - x.ovr)[7]?.ovr ?? 0,
+    prem = TUNE.winNow && e.history.length ? Math.floor((e.departed || []).filter((d) => d.ovr >= k8).length / 2) : 0;
   for (; e.round <= 9 && e.roster.length < 15;) {
     let u = pend();
     for (; e.roster.length + u.length < 15;) {
@@ -7170,7 +7542,8 @@ function kS(e) {
       u.forEach((M) => gy[Math.max(0, Math.min(3, 4 - (M.year || 1)))]++);
       let n = Le.map((v) => e.roster.filter((M) => M.pos === v).length + u.filter((M) => M.pos === v).length),
         i = r / o,
-        d = o === 1 ? r : Math.min(r, i * 1.45),
+        d0 = o === 1 ? r : Math.min(r, i * 1.45),
+        d = prem > 0 ? Math.max(d0, r * TUNE.winNow) : d0,
         y = e.prospects
           .filter(
             (v) =>
@@ -7197,6 +7570,7 @@ function kS(e) {
           })
           .sort((v, M) => M.score - v.score)[0]?.p;
       if (!y) break;
+      y.ask > d0 && prem--;
       let h = e.roster.filter((v) => v.ovr >= y.ovr).length + u.filter((v) => v.ovr >= y.ovr).length,
         p = h < 5 && Xa(e) < 5 ? "Starter" : h < 9 ? "Rotation" : "Bench",
         C = Math.min(r, Math.round(
@@ -8566,6 +8940,433 @@ Object.assign(LOGO_SHAPES, {
     '<path d="M50 14 C58 28 74 34 72 54 C70 68 60 78 50 80 C40 78 30 68 28 54 C26 36 42 28 50 14 Z" fill="currentColor"/><path d="M50 44 C56 54 60 60 56 70 C50 74 42 70 42 62 C42 54 48 52 50 44 Z" fill="#fff"/><path d="M28 54 C14 48 10 34 14 24 C22 34 28 38 34 40 Z M72 54 C86 48 90 34 86 24 C78 34 72 38 66 40 Z" fill="currentColor" opacity=".8"/><path d="M42 82 L36 92 M50 84 V94 M58 82 L64 92" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>',
 });
 
+// Design kit (item 1 of the look-and-feel overhaul). The tokens live in src/css/ui-polish.css (section "design system").
+// Shared components: Panel = qe, Stat tile = ca, Badge = he, Button = X, Empty state = yl (0064-group-Hy.js, 0093-group-ca.js);
+// new here: Tabs, Modal, Sparkline, RatingBar and onTeam (a text colour that is readable on a school colour).
+function onTeam(hex) {
+  const h = String(hex || "#f27935").replace("#", ""),
+    lin = (i) => {
+      const v = parseInt(h.substr(i, 2), 16) / 255;
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    },
+    lum = 0.2126 * lin(0) + 0.7152 * lin(2) + 0.0722 * lin(4);
+  // dark text gives (lum + .05) / (.0066 + .05); white gives 1.05 / (lum + .05)
+  return (lum + 0.05) / 0.0566 >= 1.05 / (lum + 0.05) ? "#10131a" : "#ffffff";
+}
+// Tabs: a row of buttons that wraps onto a second line (never scrolls sideways). tabs = [label] or [{id, label, count}]
+function Tabs({ tabs: e, value: a, onChange: t, label: l }) {
+  return (0, s.jsx)("div", {
+    className: "chips ds-tabs",
+    role: "tablist",
+    "aria-label": l,
+    children: e.map((u) => {
+      const o = typeof u === "string" ? { id: u, label: u } : u;
+      return (0, s.jsxs)(
+        "button",
+        {
+          role: "tab",
+          "aria-selected": o.id === a,
+          className: o.id === a ? "active" : "",
+          onClick: () => t(o.id),
+          children: [o.label, o.count != null && (0, s.jsx)("span", { className: "ds-count", children: o.count })],
+        },
+        o.id
+      );
+    }),
+  });
+}
+// Modal: every pop-up in the game is already built on Ao (0065-Ao.js): Esc and a click on the backdrop close it, Tab stays inside, focus returns to the button that opened it,
+// the page behind does not scroll, and the dialog has role="dialog" and a label. New pop-ups must use Ao, not their own markup.
+function Modal(props) {
+  return Ao(props);
+}
+// Sparkline: a tiny SVG line of recent values (no library). values = [number], tone = "" | "good" | "bad"
+function Sparkline({ values: e, tone: a = "", label: l }) {
+  const t = (e || []).filter((o) => typeof o === "number" && isFinite(o));
+  if (t.length < 2) return null;
+  const u = Math.min(...t),
+    o = Math.max(...t) - u || 1,
+    r = t.map((n, i) => `${((i / (t.length - 1)) * 100).toFixed(1)},${(22 - ((n - u) / o) * 18).toFixed(1)}`),
+    d = r[r.length - 1].split(",");
+  return (0, s.jsxs)("svg", {
+    className: `ds-spark ${a}`,
+    viewBox: "0 0 100 26",
+    preserveAspectRatio: "none",
+    role: "img",
+    "aria-label": l || "trend",
+    children: [
+      (0, s.jsx)("polyline", { points: r.join(" "), fill: "none", vectorEffect: "non-scaling-stroke" }),
+      (0, s.jsx)("circle", { cx: d[0], cy: d[1], r: 2.6, vectorEffect: "non-scaling-stroke" }),
+    ],
+  });
+}
+// GrowthChart: scoring by season for one of your players (points a game, one bar per season) plus his rating now and last offseason's growth.
+// The game keeps no rating history per player, so the bars show production, not rating.
+function GrowthChart({ p: e }) {
+  const yr = (y) => `${String(y).slice(2)}–${String(y + 1).slice(2)}`,
+    pts = [
+      ...(e.history || []).filter((h) => h.stats && h.stats.gp > 0).map((h) => ({ l: yr(h.year), v: h.stats.pts / h.stats.gp })),
+      ...(e.stats && e.stats.gp > 0 ? [{ l: "Now", v: e.stats.pts / e.stats.gp }] : []),
+    ].slice(-5),
+    top = Math.max(1, ...pts.map((z) => z.v)),
+    w = 100 / Math.max(pts.length, 3);
+  return (0, s.jsxs)("div", {
+    className: "growth-chart",
+    children: [
+      (0, s.jsxs)("div", {
+        className: "growth-head",
+        children: [
+          (0, s.jsx)("h3", { children: "Growth by season" }),
+          (0, s.jsxs)("span", {
+            className: "muted",
+            children: [e.ovr, " OVR now", e.growth > 0 ? ` \xB7 +${e.growth} last offseason` : e.growth < 0 ? ` \xB7 ${e.growth} last offseason` : ""],
+          }),
+        ],
+      }),
+      pts.length
+        ? (0, s.jsxs)("svg", {
+            viewBox: "0 0 100 44",
+            preserveAspectRatio: "none",
+            role: "img",
+            "aria-label": "Points a game by season",
+            className: "growth-svg",
+            children: pts.map((z, i) =>
+              (0, s.jsx)("rect", { x: i * w + w * 0.15, width: w * 0.7, y: 40 - (z.v / top) * 36, height: (z.v / top) * 36 + 0.5, rx: 1.5, className: i === pts.length - 1 ? "now" : "" }, i)
+            ),
+          })
+        : (0, s.jsx)("p", { className: "muted", children: "The chart fills in once he has played games." }),
+      pts.length > 0 &&
+        (0, s.jsx)("div", {
+          className: "growth-labels",
+          children: pts.map((z, i) => (0, s.jsxs)("span", { children: [z.l, (0, s.jsx)("b", { children: z.v.toFixed(1) })] }, i)),
+        }),
+    ],
+  });
+}
+// RotationBar (item 6): the 200 team minutes as one bar with a segment per player, starters in the school color. Hover or tap a segment for the name.
+function RotationBar({ roster: e, lineup: a, total: t }) {
+  const l = [...e].filter((u) => u.minutes > 0).sort((u, o) => o.minutes - u.minutes),
+    st = l.filter((u) => a.includes(u.id)).reduce((u, o) => u + o.minutes, 0);
+  return (0, s.jsxs)("div", {
+    className: "rot-bar-wrap",
+    children: [
+      (0, s.jsx)("div", {
+        className: "rot-bar",
+        role: "img",
+        "aria-label": `Rotation minutes: ${t} of 200`,
+        children: l.map((u) =>
+          (0, s.jsx)(
+            "i",
+            {
+              className: a.includes(u.id) ? "starter" : "",
+              title: `${u.name}: ${u.minutes} min`,
+              style: { width: `${(u.minutes / 200) * 100}%` },
+              children: a.includes(u.id) && u.minutes >= 12 ?u.name.split(" ").at(-1).slice(0, 5) : "",
+            },
+            u.id
+          )
+        ),
+      }),
+      (0, s.jsxs)("div", {
+        className: "rot-legend",
+        children: [
+          (0, s.jsxs)("span", { children: [(0, s.jsx)("b", { className: "dot starter" }), `Starters ${st} min`] }),
+          (0, s.jsxs)("span", { children: [(0, s.jsx)("b", { className: "dot" }), `Bench ${t - st} min`] }),
+          t < 200 && (0, s.jsx)("span", { className: "orange-text", children: `${200 - t} min unassigned` }),
+        ],
+      }),
+    ],
+  });
+}
+// Charts (item 8), plain SVG, no library. Colors are a fixed set that reads on the dark surfaces; series 0 is the school color.
+var DS_COLORS = ["var(--team,var(--orange))", "#7fb2ff", "#6bd1a5", "#f5c542", "#c58aff", "#f48087"];
+// ShareBar: one horizontal bar split into parts (value > 0), with a legend that names every part and its share.
+function ShareBar({ parts: e, fmt: a = (t) => t, label: t }) {
+  const l = e.reduce((u, o) => u + Math.max(0, o.value), 0) || 1;
+  return (0, s.jsxs)("div", {
+    className: "ds-chart",
+    children: [
+      (0, s.jsx)("div", {
+        className: "ds-share",
+        role: "img",
+        "aria-label": t,
+        children: e.map((u, o) =>
+          u.value > 0 ? (0, s.jsx)("i", { title: `${u.label}: ${a(u.value)}`, style: { width: `${(100 * u.value) / l}%`, background: DS_COLORS[o % DS_COLORS.length] } }, u.label) : null
+        ),
+      }),
+      (0, s.jsx)("div", {
+        className: "ds-legend",
+        children: e.map((u, o) =>
+          (0, s.jsxs)(
+            "span",
+            {
+              children: [
+                (0, s.jsx)("b", { className: "dot", style: { background: DS_COLORS[o % DS_COLORS.length] } }),
+                u.label,
+                " ",
+                (0, s.jsxs)("em", { children: [a(u.value), " \xB7 ", Math.round((100 * Math.max(0, u.value)) / l), "%"] }),
+              ],
+            },
+            u.label
+          )
+        ),
+      }),
+    ],
+  });
+}
+// LineChart: series = [{ name, pts: [[x, y], ...] }]; x and y labels are formatted by fx / fy. Scales to its box width.
+function LineChart({ series: e, fx: a = (t) => t, fy: t = (l) => l, label: l, height: u = 170 }) {
+  const o = e.flatMap((c) => c.pts);
+  if (o.length < 2) return null;
+  const W = 600,
+    H = u,
+    L = 64,
+    R = 34,
+    T = 10,
+    B = 26,
+    x0 = Math.min(...o.map((c) => c[0])),
+    x1 = Math.max(...o.map((c) => c[0])),
+    y0 = Math.min(0, ...o.map((c) => c[1])),
+    y1 = Math.max(...o.map((c) => c[1])) || 1,
+    X = (c) => L + ((c - x0) / (x1 - x0 || 1)) * (W - L - R),
+    Y = (c) => T + (1 - (c - y0) / (y1 - y0 || 1)) * (H - T - B),
+    ticks = [0, 0.5, 1].map((c) => y0 + c * (y1 - y0)),
+    xs = [...new Set(o.map((c) => c[0]))].sort((c, d) => c - d);
+  return (0, s.jsxs)("div", {
+    className: "ds-chart",
+    children: [
+      (0, s.jsxs)("svg", {
+        className: "ds-line",
+        viewBox: `0 0 ${W} ${H}`,
+        role: "img",
+        "aria-label": l,
+        children: [
+          ticks.map((c, d) =>
+            (0, s.jsxs)(
+              "g",
+              {
+                children: [
+                  (0, s.jsx)("line", { x1: L, x2: W - R, y1: Y(c), y2: Y(c), className: "grid" }),
+                  (0, s.jsx)("text", { x: L - 6, y: Y(c) + 4, textAnchor: "end", children: t(c) }),
+                ],
+              },
+              d
+            )
+          ),
+          xs.map((c) => (0, s.jsx)("text", { x: X(c), y: H - 8, textAnchor: "middle", children: a(c) }, c)),
+          e.map((c, d) =>
+            (0, s.jsxs)(
+              "g",
+              {
+                style: { color: DS_COLORS[d % DS_COLORS.length] },
+                children: [
+                  (0, s.jsx)("polyline", { points: c.pts.map((z) => `${X(z[0])},${Y(z[1])}`).join(" "), fill: "none", stroke: "currentColor", strokeWidth: 2.5, strokeLinejoin: "round" }),
+                  c.pts.map((z, k) => (0, s.jsx)("circle", { cx: X(z[0]), cy: Y(z[1]), r: 3.5, fill: "currentColor", children: (0, s.jsx)("title", { children: `${c.name}: ${a(z[0])} → ${t(z[1])}` }) }, k)),
+                ],
+              },
+              c.name
+            )
+          ),
+        ],
+      }),
+      e.length > 1 &&
+        (0, s.jsx)("div", {
+          className: "ds-legend",
+          children: e.map((c, d) =>
+            (0, s.jsxs)("span", { children: [(0, s.jsx)("b", { className: "dot", style: { background: DS_COLORS[d % DS_COLORS.length] } }), c.name] }, c.name)
+          ),
+        }),
+    ],
+  });
+}
+// RatingBar: a labelled bar from 0 to max (default 99). Colour steps with the value so a weak area stands out.
+function RatingBar({ value: e, max: a = 99, label: t, tone: l }) {
+  const u = Math.max(0, Math.min(100, (e / a) * 100)),
+    o = l || (e >= 80 ? "great" : e >= 65 ? "good" : e >= 50 ? "ok" : "low");
+  return (0, s.jsxs)("div", {
+    className: "ds-bar",
+    children: [
+      t && (0, s.jsx)("span", { className: "ds-bar-label", children: t }),
+      (0, s.jsx)("span", {
+        className: `ds-bar-track ${o}`,
+        role: "progressbar",
+        "aria-valuenow": e,
+        "aria-valuemin": 0,
+        "aria-valuemax": a,
+        children: (0, s.jsx)("i", { style: { width: `${u}%` } }),
+      }),
+      (0, s.jsx)("b", { className: "ds-bar-num", children: e }),
+    ],
+  });
+}
+
+// Shared Table (item 2). DataTable({ columns, rows, filters, rowClass, empty, title, expand })
+//  columns: [{ key, label, num?, sort?, get?(row) -> sort value, render?(row, i) -> node, className? }]
+//    num: right-aligned tabular numbers (guessed from the first rows when left out); sort: false turns sorting off for that column.
+//  rows: array of objects. filters: [{ label, test(row) }] shown as chips above the table ("All" is added).
+//  Click a header to sort (arrow shows direction, click again to reverse, a third click restores the original order).
+//  Wide tables (9+ columns, or expand: true) get an Expand button (icon in the corner) that opens the same table full screen; Esc or Close returns.
+// Every other table in the game gets right-aligned tabular numbers from the small script at the end of this file.
+function DataTable({ columns: e, rows: a, filters: t, rowClass: l, empty: u, expand: o, bare: bare, tableClass: tc }) {
+  const [r, n] = (0, N.useState)(null),
+    [i, d] = (0, N.useState)(0),
+    [f, y] = (0, N.useState)(!1),
+    xs = (t || []).length ? t : null,
+    flt = xs && i > 0 ? xs[i - 1] : null,
+    isNum = (c) => {
+      if (c.num != null) return c.num;
+      const vs = a.slice(0, 8).map((z) => (c.get ? c.get(z) : z[c.key]));
+      return vs.length > 0 && vs.every((v) => typeof v === "number" || (typeof v === "string" && /^[+\-–]?\$?\d[\d,.]*\s?(%|[kKmM])?$|^\d+[–-]\d+$/.test(v.trim())));
+    },
+    cols = e.map((c) => ({ ...c, num: isNum(c) })),
+    val = (c, z) => (c.get ? c.get(z) : z[c.key]),
+    cmp = (x, z) => {
+      const p = typeof x === "string" ? parseFloat(x.replace(/[^0-9.\-]/g, "")) : x,
+        q = typeof z === "string" ? parseFloat(z.replace(/[^0-9.\-]/g, "")) : z;
+      if (typeof x === "number" || typeof z === "number" || (!isNaN(p) && !isNaN(q) && /\d/.test(x) && /\d/.test(z))) return (isNaN(p) ? -1e12 : p) - (isNaN(q) ? -1e12 : q);
+      return String(x ?? "").localeCompare(String(z ?? ""));
+    };
+  let rows = flt ? a.filter(flt.test) : a;
+  if (r) {
+    const c = cols.find((z) => z.key === r.key);
+    if (c) rows = [...rows].sort((x, z) => r.dir * cmp(val(c, x), val(c, z)));
+  }
+  const clickHead = (c) => {
+      if (c.sort === !1) return;
+      n(!r || r.key !== c.key ? { key: c.key, dir: c.num ? -1 : 1 } : r.dir === (c.num ? -1 : 1) ? { key: c.key, dir: -r.dir } : null);
+    },
+    table = (full) =>
+      (0, s.jsx)("div", {
+        className: "table-wrap ds-table-wrap",
+        children: (0, s.jsxs)("table", {
+          className: "ds-table" + (full ? " full" : "") + (tc ? " " + tc : ""),
+          children: [
+            (0, s.jsx)("thead", {
+              children: (0, s.jsx)("tr", {
+                children: cols.map((c) => {
+                  const on = r && r.key === c.key;
+                  return (0, s.jsx)(
+                    "th",
+                    {
+                      className: (c.num ? "ds-num " : "") + (c.sort === !1 ? "" : "sortable ") + (on ? "sorted" : ""),
+                      "aria-sort": on ? (r.dir > 0 ? "ascending" : "descending") : void 0,
+                      children:
+                        c.sort === !1
+                          ? c.label
+                          : (0, s.jsxs)("button", {
+                              type: "button",
+                              className: "ds-sort",
+                              onClick: () => clickHead(c),
+                              title: "Sort by " + c.label,
+                              children: [c.label, (0, s.jsx)("span", { className: "ds-arrow", "aria-hidden": "true", children: on ? (r.dir > 0 ? "▲" : "▼") : "⇅" })],
+                            }),
+                    },
+                    c.key
+                  );
+                }),
+              }),
+            }),
+            (0, s.jsx)("tbody", {
+              children: rows.map((z, k) =>
+                (0, s.jsx)(
+                  "tr",
+                  {
+                    className: l ? l(z) : "",
+                    children: cols.map((c) =>
+                      (0, s.jsx)("td", { className: (c.num ? "ds-num " : "") + (c.className || ""), children: c.render ? c.render(z, k) : val(c, z) }, c.key)
+                    ),
+                  },
+                  z.id ?? k
+                )
+              ),
+            }),
+          ],
+        }),
+      }),
+    wide = o ?? e.length >= 9;
+  (0, N.useEffect)(() => {
+    if (!f) return;
+    const h = (z) => z.key === "Escape" && y(!1);
+    document.addEventListener("keydown", h);
+    return () => document.removeEventListener("keydown", h);
+  }, [f]);
+  const body = (full) =>
+    (0, s.jsxs)(s.Fragment, {
+      children: [
+        xs &&
+          (0, s.jsx)(Tabs, {
+            tabs: [{ id: 0, label: "All", count: a.length }, ...xs.map((z, k) => ({ id: k + 1, label: z.label, count: a.filter(z.test).length }))],
+            value: i,
+            onChange: d,
+            label: "Filter",
+          }),
+        rows.length ? table(full) : u || (0, s.jsx)("p", { className: "muted ds-empty", children: "Nothing to show yet." }),
+      ],
+    });
+  return (0, s.jsxs)("div", {
+    className: "ds-table-box" + (bare ? " bare" : ""),
+    children: [
+      wide && (0, s.jsx)("button", { type: "button", className: "table-expand", "aria-label": "Expand table", title: "Expand table to full screen", onClick: () => y(!0), children: "⤢" }),
+      body(!1),
+      f &&
+        (0, s.jsxs)("div", {
+          className: "table-overlay",
+          role: "dialog",
+          "aria-modal": "true",
+          children: [(0, s.jsx)("button", { type: "button", className: "table-close btn", onClick: () => y(!1), children: "Close (Esc)" }), body(!0)],
+        }),
+    ],
+  });
+}
+// Right-aligned tabular numbers for every table that is not a DataTable: a column whose body cells are (nearly) all numbers gets class ds-num.
+(function () {
+  const num = /^[+\-–−]?\$?\d[\d,.]*\s?(%|[kKmM]|\/yr)?$|^\d+[–\-]\d+$/;
+  const mark = (t) => {
+    if (t.classList.contains("ds-table") || !t.tBodies.length) return;
+    const rows = [...t.tBodies[0].rows].slice(0, 40);
+    if (!rows.length) return;
+    const n = Math.max(...rows.map((r) => r.cells.length));
+    for (let c = 0; c < n; c++) {
+      let seen = 0,
+        hit = 0;
+      rows.forEach((r) => {
+        const cell = r.cells[c];
+        if (!cell || r.cells.length < n) return;
+        const x = cell.textContent.trim();
+        if (x && x !== "–") {
+          seen++;
+          if (num.test(x)) hit++;
+        }
+      });
+      const on = seen >= 2 && hit / seen >= 0.8;
+      [...t.rows].forEach((r) => {
+        const cell = r.cells[c];
+        if (cell && r.cells.length === n && !cell.matches("td[colspan],th[colspan]")) cell.classList.toggle("ds-num", on);
+      });
+    }
+  };
+  let pend = new Set(),
+    raf = 0;
+  const run = () => {
+    raf = 0;
+    const list = pend;
+    pend = new Set();
+    list.forEach((t) => t.isConnected && mark(t));
+  };
+  const queue = (t) => {
+    pend.add(t);
+    if (!raf) raf = requestAnimationFrame(run);
+  };
+  const seek = (el) => {
+    if (el.nodeType !== 1) return;
+    const up = el.closest && el.closest("table");
+    if (up) queue(up);
+    else if (el.querySelectorAll) el.querySelectorAll("table").forEach(queue);
+  };
+  if (typeof MutationObserver !== "undefined" && typeof document !== "undefined")
+    new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach(seek))).observe(document.documentElement, { childList: true, subtree: true });
+})();
+
 function Ao({ children: e, title: a, onClose: t, wide: l = !1, drawer: u = !1 }) {
   let o = (0, N.useRef)(null),
     r = (0, N.useRef)(t);
@@ -8578,7 +9379,7 @@ function Ao({ children: e, title: a, onClose: t, wide: l = !1, drawer: u = !1 })
       let d = (f) => {
         if ((f.key === "Escape" && r.current(), f.key === "Tab")) {
           let y = o.current?.querySelectorAll(
-            'button:not(:disabled),input:not(:disabled),select:not(:disabled),[tabindex="0"]'
+            'button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,a[href],[tabindex="0"]'
           );
           if (!y?.length) return;
           let h = y[0],
@@ -8833,8 +9634,8 @@ function applyCfg() {
   ));
 
 // Filled in by tools/build.js: which build this is, and the "What's new" digest of the instruction log (item 32).
-var BUILD_INFO = {"version":"V13","build":140,"commit":"562a23c","dirty":false,"date":"2026-10-05T14:32:35.457Z"},
-  WHATS_NEW = [{"id":"0027","date":"2026-10-05","title":"Big update","text":"Stage 1 is finished. I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\" (commit 0b71168). I changed no game code and pushed nothing. The commit also picked up tools/prompts/edit-0027-big-update-s1.txt, which was sitting uncommitted in the project folder."},{"id":"0025","date":"2026-10-05","title":"Big update: items 12, 15, 16, 22, 31, 33, 34, 53, 55","text":"Stage 1 is finished: I measured the game as it stands, wrote the numbers into CLAUDE.md under \"Baselines\", and committed it as \"Baseline\". I changed no game code and did not push. The commit also picked up the claude-log and prompt files that were already waiting."},{"id":"0024","date":"2026-10-05","title":"Big update: items 8, 9, 10, 11, 47, 50, 51, 54","text":"The baseline is recorded and saved as one commit called \"Baseline\" (ce627d2). I changed no game code, and nothing was pushed. The \"Baselines\" section of CLAUDE.md now has a full and a quick baseline, and the old ones are still there. The commit also picked up the log files that were already waiting in the folder."},{"id":"0023","date":"2026-10-04","title":"Big update: items 37, 38, 39, 40, 41, 42, 43, 44, 45","text":"I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\". I changed no game code, and nothing was pushed. The numbers come from commit 7cffff8, the code as it stood before this stage."},{"id":"0022","date":"2026-10-04","title":"Big update: items 26, 27, 28, 29, 30","text":"Both baselines are measured, written into CLAUDE.md under \"Baselines\" and committed as \"Baseline\". I didn't change any game code, and nothing was pushed."},{"id":"0021","date":"2026-10-04","title":"Big update: items 17, 18, 19, 21, 32, 35, 36, 52","text":"All five items are done and committed one by one (17, 18, 19, 21, 32), and nothing was pushed. None of them touched how games play. After each one npm test passed, including the draft shares, and I ran the screen tests for the ones that changed screens."},{"id":"0020","date":"2026-10-04","title":"Big update: items 14, 20, 48, 49","text":"All four items are done and committed, one commit each (14, 20, 48, 49). Nothing was pushed. After each one npm test passed. The three that change a screen also passed the quick screen test (101 checks, none failed)."},{"id":"0018","date":"2026-10-04","title":"Confrence and Schedule ranking boost","text":"Schedule strength and conference strength now count a bit more in the national rankings. The build and npm test pass, and the change is committed but not pushed."},{"id":"0017","date":"2026-10-04","title":"Big update 1","text":"All seven changes are in and committed (nothing pushed). The build, npm test and the screen test (186 steps) all pass, and the game-numbers test shows no change to how games play. Two of the fixes are checked with real player and school data; the draft-keep and rankings changes are only partly checked (see the end)."},{"id":"0016","date":"2026-10-04","title":"asking price displayed my recruits","text":"Your players' cards now show an \"Asking\" amount under the NIL line, so you can see what each one wants next to what you pay. I haven't looked at the cards on screen, so I haven't seen how it fits."},{"id":"0015","date":"2026-10-04","title":"phone","text":"The game now works on a 390-pixel-wide phone screen, it's easy to tap, and it can be installed as a home-screen app that works without internet. Every check passed. Nothing has been sent to GitHub or the public website yet."},{"id":"0014","date":"2026-10-03","title":"confrence ranking/top 25","text":"The Top 25 now lives in League news, and League news has a new Conference ranking tab. The game builds, npm test passes, and the click-through screen test passed all 186 steps."},{"id":"0013","date":"2026-10-03","title":"Put the confrence under team names in","text":"On the start page, each school card now shows its conference on a line right under the team name (for example, \"Gulf Conference\" under \"Delta State Tech\"). It's committed and not pushed."},{"id":"0012","date":"2026-10-03","title":"scratch all of this 5 years before","text":"Poor schools now have low expectations and a long grace period, and rich schools have high expectations and a short one. Schools are labeled by budget, not \"Easy\" or \"Hard\". I rebuilt the game, committed the change and did not push."},{"id":"0011","date":"2026-10-03","title":"Reverse the difficuly things and put the","text":"The difficulty is now reversed: rich, strong schools are Easy and poor, weak schools are Brutal. The start page lists schools from richest to poorest. The build, npm test and npm run test:ui all pass. The balance test now flags every tier, because its targets were written for the old direction."},{"id":"0010","date":"2026-10-03","title":"Let player go fix","text":"I couldn't reproduce the break, so I only fixed a wrong message on that screen. If you still see the problem, I need to know exactly what happened."},{"id":"0009","date":"2026-10-03","title":"Tab in league news with the top 50 players","text":"League News now has a \"Top 50\" tab. It's built, tested and committed, and I didn't push."},{"id":"0008","date":"2026-10-03","title":"pictures on my recruit recruit pages are","text":"The recruit picture is fixed: it now shows the whole head and shoulders instead of a zoomed-in crop. I checked this in a screenshot of a recruit's page."},{"id":"0007","date":"2026-10-03","title":"Suggested Edits","text":"That notice only confirms the balance runs ended. I'd already read their results and finished the work, so nothing changes."},{"id":"0006","date":"2026-10-03","title":"start new career option","text":"There's now a Start a new career button on the screen that says the saved career could not be opened."},{"id":"0005","date":"2026-10-03","title":"v13","text":"All 19 requests are done and saved as one commit on this computer. Nothing has been pushed to GitHub."},{"id":"0004","date":"2026-10-03","title":"Task 4: asking prices, long careers, season UI checks","text":"All four parts are done and committed as 29f99a0 (not pushed). The one target not quite met: the Hard tier has 44% of long careers fired against \"about 40%\"."},{"id":"0003","date":"2026-10-03","title":"Task 3: UI click-through test and multi-season money test","text":"I added both tests and ran them. Together they found one real bug, which I fixed. Final results: - npm run test:ui: 167 of 167 steps pass. - npm run test:nil: no CHECK flags. - npm test: all checks pass. - npm run test:realism: every row is still PASS, with the same numbers as before (the fix only touched the screen,…"},{"id":"0002","date":"2026-10-03","title":"Task 2: fix rebounds, blocks and other-team noise","text":"All realism rows now pass, balance is still in range, and npm test passes. The changes are committed (not pushed)."},{"id":"0001","date":"2026-10-03","title":"Task 1: add realism and balance measurement tests","text":"The balance run has started (30 schools, 3 seasons, 5 Chrome workers). I'll get a notification when it finishes."},{"id":"0000","date":"2026-10-03","title":"First look: check the build and plan the fixes (read-only)","text":"The game has been split into src/. The user asked me to confirm it builds and that npm test passes, then list the open issues from CLAUDE.md and propose an order to fix them. No files were to be changed."}];
+var BUILD_INFO = {"version":"V13","build":159,"commit":"1f56e3f","dirty":false,"date":"2026-10-06T15:06:42.296Z"},
+  WHATS_NEW = [{"id":"0033","date":"2026-10-06","title":"Finish three tuning gaps that are still","text":"I finished the work and committed it (not pushed). The small-budget tournament rate is fixed and fewer coaches get fired. The season-5 dip shrank by half but does not meet the target in the low-budget levels."},{"id":"0032","date":"2026-10-06","title":"Big update","text":"Items 1 to 4 are done and committed, one commit each, nothing pushed. Items 2 and 4 are only partly done, and items 1 and 3 have gaps too. They are listed below."},{"id":"0031","date":"2026-10-05","title":"1. Auto-recruit should chase the best players,","text":"Both runs are going; I'll check them when they finish."},{"id":"0030","date":"2026-10-05","title":"Absolutely no sideways scrolling anywhere, and no","text":"At 1000, 1100, 1280 and 1440 wide, nothing scrolls sideways or is cut off, no table column is hidden, and only the page scrolls up and down. All tests pass, and the change is committed but not pushed."},{"id":"0029","date":"2026-10-05","title":"Two screen fixes, done together. 1. Put","text":"Both screen fixes are done and committed (fb99ea4, not pushed). The new overflow check passes: no screen scrolls sideways at 1100, 1280 or 1440 wide, so no table needed an exception."},{"id":"0027","date":"2026-10-05","title":"Big update","text":"Stage 1 is finished. I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\" (commit 0b71168). I changed no game code and pushed nothing. The commit also picked up tools/prompts/edit-0027-big-update-s1.txt, which was sitting uncommitted in the project folder."},{"id":"0025","date":"2026-10-05","title":"Big update: items 12, 15, 16, 22, 31, 33, 34, 53, 55","text":"Stage 1 is finished: I measured the game as it stands, wrote the numbers into CLAUDE.md under \"Baselines\", and committed it as \"Baseline\". I changed no game code and did not push. The commit also picked up the claude-log and prompt files that were already waiting."},{"id":"0024","date":"2026-10-05","title":"Big update: items 8, 9, 10, 11, 47, 50, 51, 54","text":"The baseline is recorded and saved as one commit called \"Baseline\" (ce627d2). I changed no game code, and nothing was pushed. The \"Baselines\" section of CLAUDE.md now has a full and a quick baseline, and the old ones are still there. The commit also picked up the log files that were already waiting in the folder."},{"id":"0023","date":"2026-10-04","title":"Big update: items 37, 38, 39, 40, 41, 42, 43, 44, 45","text":"I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\". I changed no game code, and nothing was pushed. The numbers come from commit 7cffff8, the code as it stood before this stage."},{"id":"0022","date":"2026-10-04","title":"Big update: items 26, 27, 28, 29, 30","text":"Both baselines are measured, written into CLAUDE.md under \"Baselines\" and committed as \"Baseline\". I didn't change any game code, and nothing was pushed."},{"id":"0021","date":"2026-10-04","title":"Big update: items 17, 18, 19, 21, 32, 35, 36, 52","text":"All five items are done and committed one by one (17, 18, 19, 21, 32), and nothing was pushed. None of them touched how games play. After each one npm test passed, including the draft shares, and I ran the screen tests for the ones that changed screens."},{"id":"0020","date":"2026-10-04","title":"Big update: items 14, 20, 48, 49","text":"All four items are done and committed, one commit each (14, 20, 48, 49). Nothing was pushed. After each one npm test passed. The three that change a screen also passed the quick screen test (101 checks, none failed)."},{"id":"0018","date":"2026-10-04","title":"Confrence and Schedule ranking boost","text":"Schedule strength and conference strength now count a bit more in the national rankings. The build and npm test pass, and the change is committed but not pushed."},{"id":"0017","date":"2026-10-04","title":"Big update 1","text":"All seven changes are in and committed (nothing pushed). The build, npm test and the screen test (186 steps) all pass, and the game-numbers test shows no change to how games play. Two of the fixes are checked with real player and school data; the draft-keep and rankings changes are only partly checked (see the end)."},{"id":"0016","date":"2026-10-04","title":"asking price displayed my recruits","text":"Your players' cards now show an \"Asking\" amount under the NIL line, so you can see what each one wants next to what you pay. I haven't looked at the cards on screen, so I haven't seen how it fits."},{"id":"0015","date":"2026-10-04","title":"phone","text":"The game now works on a 390-pixel-wide phone screen, it's easy to tap, and it can be installed as a home-screen app that works without internet. Every check passed. Nothing has been sent to GitHub or the public website yet."},{"id":"0014","date":"2026-10-03","title":"confrence ranking/top 25","text":"The Top 25 now lives in League news, and League news has a new Conference ranking tab. The game builds, npm test passes, and the click-through screen test passed all 186 steps."},{"id":"0013","date":"2026-10-03","title":"Put the confrence under team names in","text":"On the start page, each school card now shows its conference on a line right under the team name (for example, \"Gulf Conference\" under \"Delta State Tech\"). It's committed and not pushed."},{"id":"0012","date":"2026-10-03","title":"scratch all of this 5 years before","text":"Poor schools now have low expectations and a long grace period, and rich schools have high expectations and a short one. Schools are labeled by budget, not \"Easy\" or \"Hard\". I rebuilt the game, committed the change and did not push."},{"id":"0011","date":"2026-10-03","title":"Reverse the difficuly things and put the","text":"The difficulty is now reversed: rich, strong schools are Easy and poor, weak schools are Brutal. The start page lists schools from richest to poorest. The build, npm test and npm run test:ui all pass. The balance test now flags every tier, because its targets were written for the old direction."},{"id":"0010","date":"2026-10-03","title":"Let player go fix","text":"I couldn't reproduce the break, so I only fixed a wrong message on that screen. If you still see the problem, I need to know exactly what happened."},{"id":"0009","date":"2026-10-03","title":"Tab in league news with the top 50 players","text":"League News now has a \"Top 50\" tab. It's built, tested and committed, and I didn't push."},{"id":"0008","date":"2026-10-03","title":"pictures on my recruit recruit pages are","text":"The recruit picture is fixed: it now shows the whole head and shoulders instead of a zoomed-in crop. I checked this in a screenshot of a recruit's page."},{"id":"0007","date":"2026-10-03","title":"Suggested Edits","text":"That notice only confirms the balance runs ended. I'd already read their results and finished the work, so nothing changes."},{"id":"0006","date":"2026-10-03","title":"start new career option","text":"There's now a Start a new career button on the screen that says the saved career could not be opened."},{"id":"0005","date":"2026-10-03","title":"v13","text":"All 19 requests are done and saved as one commit on this computer. Nothing has been pushed to GitHub."},{"id":"0004","date":"2026-10-03","title":"Task 4: asking prices, long careers, season UI checks","text":"All four parts are done and committed as 29f99a0 (not pushed). The one target not quite met: the Hard tier has 44% of long careers fired against \"about 40%\"."},{"id":"0003","date":"2026-10-03","title":"Task 3: UI click-through test and multi-season money test","text":"I added both tests and ran them. Together they found one real bug, which I fixed. Final results: - npm run test:ui: 167 of 167 steps pass. - npm run test:nil: no CHECK flags. - npm test: all checks pass. - npm run test:realism: every row is still PASS, with the same numbers as before (the fix only touched the screen,…"},{"id":"0002","date":"2026-10-03","title":"Task 2: fix rebounds, blocks and other-team noise","text":"All realism rows now pass, balance is still in range, and npm test passes. The changes are committed (not pushed)."},{"id":"0001","date":"2026-10-03","title":"Task 1: add realism and balance measurement tests","text":"The balance run has started (30 schools, 3 seasons, 5 Chrome workers). I'll get a notification when it finishes."},{"id":"0000","date":"2026-10-03","title":"First look: check the build and plan the fixes (read-only)","text":"The game has been split into src/. The user asked me to confirm it builds and that npm test passes, then list the open issues from CLAUDE.md and propose an order to fix them. No files were to be changed."}];
 
 function DiagPanel({ g: e }) {
   let R = e.opponents.map((t) => t.rating),
@@ -10190,7 +10991,7 @@ function oc() {
           })
         : (0, s.jsxs)("div", {
             className: "app-shell",
-            style: { "--team": e.school.color },
+            style: { "--team": e.school.color, "--on-team": onTeam(e.school.color) },
             children: [
               (0, s.jsxs)("aside", {
                 className: `sidebar ${W ? "open" : ""}`,
@@ -12364,11 +13165,12 @@ function Fy({ p: e, onClick: a, prospect: t = !1 }) {
                       className: "injury-line",
                       children: `${e.susp ? (e.susp === 2 ? "Ineligible" : "Suspended") : "Injured"} \xB7 out ${e.injury} game${e.injury === 1 ? "" : "s"}`,
                     }),
+                  (0, s.jsx)(RatingBar, { value: e.ovr }),
                   (0, s.jsx)(Ys, { p: e }),
                   (0, s.jsxs)("div", {
                     className: "card-detail",
                     children: [
-                      (0, s.jsx)("span", { children: e.role }),
+                      (0, s.jsx)("span", { children: `${e.role} \xB7 ${e.minutes} min` }),
                       (0, s.jsxs)("strong", {
                         children: [q(e.nil), (0, s.jsx)("small", { children: "/yr" })],
                       }),
@@ -12382,6 +13184,48 @@ function Fy({ p: e, onClick: a, prospect: t = !1 }) {
   });
 }
 
+// Program HQ dashboard helpers (item 3). No game numbers: these only read the career.
+// News icon by topic, so the feed can be scanned by eye.
+function newsIcon(title) {
+  const x = String(title || "").toLowerCase();
+  if (/injur|suspen|ineligib|incident|eligib|waiver/.test(x)) return St;
+  if (/draft|graduat|senior|pro /.test(x)) return io;
+  if (/portal|transfer|withdr/.test(x)) return so;
+  if (/champion|tournament|title|seed|bracket|nit\b|award|american|ranked|poll|top 25/.test(x)) return ba;
+  if (/nil|budget|revenue|donor|contract|media|money|salary|\$/.test(x)) return ja;
+  if (/recruit|class|sign|commit|visit|offer/.test(x)) return Va;
+  if (/coach|assistant|staff|job|hire/.test(x)) return nl;
+  return Es;
+}
+// Small trend lines for the tiles: wins, NIL budget and reputation by finished season; in season the record tile shows each game's margin.
+function hqSparks(e) {
+  const h = e.history || [],
+    played = e.schedule.filter((f) => f.played).map((f) => f.us - f.them);
+  return {
+    record: e.phase === "Regular season" && played.length >= 3 ? played : h.map((z) => z.wins),
+    recordNote: e.phase === "Regular season" && played.length >= 3 ? "Margin, game by game" : "Wins by season",
+    budget: h.map((z) => z.budget),
+    rep: [...h.map((z) => z.rep), e.rep],
+  };
+}
+// The one thing to do next. Pending decisions come first because they block the season; then the first unfinished offseason step; then the next game.
+function hqNext(e, steps, nextGame) {
+  const pend = (e.draft || []).filter((d) => d.status === "pending").length,
+    xf = (e.xfers || []).filter((d) => d.status === "pending").length + e.prospects.filter((d) => d.wb && d.status === "Available").length,
+    neg = (e.negs || []).length;
+  if (pend) return { key: "draft", title: `Answer ${pend} draft decision${pend > 1 ? "s" : ""}`, why: "Players are waiting to hear whether you want them back.", label: "Open draft decisions" };
+  if (xf) return { key: "xfer", title: `Answer ${xf} transfer decision${xf > 1 ? "s" : ""}`, why: "Players in the portal are waiting for your answer.", label: "Open transfer decisions" };
+  if (neg) return { key: "neg", title: `Settle ${neg} contract talk${neg > 1 ? "s" : ""}`, why: "Players want to talk about their NIL deals.", label: "Open contract talks" };
+  if (e.phase === "Offseason") {
+    const st = steps.find((z) => !z.done);
+    return st
+      ? { key: "tab", tab: st.tab, title: st.title, why: st.sub, label: "Go there" }
+      : { key: "none", title: "Your roster is ready", why: "Press Begin season at the top right when you want to start.", label: "" };
+  }
+  if (e.phase === "Season review") return { key: "tab", tab: "Season", title: "Review your season", why: e.result || "Season complete", label: "Open season center" };
+  if (nextGame) return { key: "sim", title: `Next game: ${nextGame.venue === "Away" ? "at" : nextGame.venue === "Neutral" ? "vs (neutral)" : "vs"} ${nextGame.opponent}`, why: `${nextGame.kind} \xB7 opponent overall ${nextGame.rating}`, label: "Sim next game" };
+  return { key: "tab", tab: "Season", title: e.phase, why: e.berth || "Your next result is waiting in the season center.", label: "Open season center" };
+}
 function ZC({
   g: e,
   run: a,
@@ -12403,6 +13247,47 @@ function ZC({
       .reverse(),
     i = e.roster.filter((f) => !f.redshirt).length,
     d = e.roster.reduce((f, y) => f + y.minutes, 0);
+  let steps = [
+                          {
+                            title: "Build an eight-man roster",
+                            sub: `${i} active players \xB7 ${Math.max(0, 8 - i)} more needed`,
+                            done: i >= 8,
+                            tab: "Recruiting",
+                            icon: nl,
+                          },
+                          {
+                            title: "Set your starting five & minutes",
+                            sub: `${e.lineup.length}/5 starters \xB7 ${d}/200 minutes`,
+                            done: e.lineup.length === 5 && d === 200,
+                            tab: "Rotation",
+                            icon: no,
+                          },
+                          {
+                            title: "Promise a role to every player",
+                            sub: `${e.roster.filter((f) => !f.redshirt && f.promise && f.promise !== "None").length} of ${i} promised \xB7 needed before opening night`,
+                            done: e.roster
+                              .filter((f) => !f.redshirt)
+                              .every((f) => f.promise && f.promise !== "None"),
+                            tab: "Roster",
+                            icon: nl,
+                          },
+                          {
+                            title: "Customize your nonconference schedule",
+                            sub: "12 games selected \xB7 adjust opponents and venues",
+                            done: !0,
+                            tab: "Schedule",
+                            icon: ql,
+                          },
+                          {
+                            title: "Resolve your recruiting offers",
+                            sub: `${e.prospects.filter((f) => f.offer).length} pending offers \xB7 ${e.round === 9 ? "last chance round" : `round ${Math.min(e.round, 8)} of 8`}`,
+                            done: !e.prospects.some((f) => f.offer),
+                            tab: "Recruiting",
+                            icon: Va,
+                          },
+                        ],
+    next = hqNext(e, steps, r),
+    spark = hqSparks(e);
   return (0, s.jsxs)(s.Fragment, {
     children: [
       (0, s.jsxs)("div", {
@@ -12516,6 +13401,26 @@ function ZC({
           }),
         ],
       }),
+      (0, s.jsxs)("section", {
+        className: "hq-next" + (next.key === "none" ? " ready" : ""),
+        "aria-label": "What to do next",
+        children: [
+          (0, s.jsxs)("div", {
+            children: [
+              (0, s.jsx)("span", { className: "eyebrow", children: "DO THIS NEXT" }),
+              (0, s.jsx)("h2", { children: next.title }),
+              (0, s.jsx)("p", { children: next.why }),
+            ],
+          }),
+          next.label &&
+            (0, s.jsx)(X, {
+              primary: !0,
+              onClick: () =>
+                next.key === "draft" ? odr() : next.key === "xfer" ? oxf() : next.key === "neg" ? ong() : next.key === "sim" ? a({ type: "sim", count: 1 }) : t(next.tab),
+              children: next.label,
+            }),
+        ],
+      }),
       (0, s.jsxs)("div", {
         className: "metrics",
         children: [
@@ -12529,12 +13434,16 @@ function ZC({
                 : `${o.wins}\u2013${o.losses}`,
             note: `Goal: ${_s(e)} wins${{ delta: " or real player growth", lake: " or real player growth", mesa: " or a conference title", coastal: " or a conference title", mission: " or a conference title", metro: " or a conference title", cascadia: " or a tournament trip", peachtree: " or a tournament trip", capital: " or a tournament trip", lone: " or a tournament trip" }[e.school.id] || ""} \xB7 ${jobStatus(e)}`,
             icon: (0, s.jsx)(ba, {}),
+            spark: spark.record,
+            sparkNote: spark.recordNote,
             onClick: osv,
           }),
           (0, s.jsx)(ca, {
             label: "NIL AVAILABLE",
             value: q(Ce(e)),
             note: `${q(e.budget)} total budget`,
+            spark: spark.budget,
+            sparkNote: "Budget by season",
             icon: (0, s.jsx)(ja, {}),
           }),
           (0, s.jsx)(ca, {
@@ -12571,45 +13480,7 @@ function ZC({
                   e.phase === "Offseason"
                     ? (0, s.jsx)("div", {
                         className: "checklist",
-                        children: [
-                          {
-                            title: "Build an eight-man roster",
-                            sub: `${i} active players \xB7 ${Math.max(0, 8 - i)} more needed`,
-                            done: i >= 8,
-                            tab: "Recruiting",
-                            icon: nl,
-                          },
-                          {
-                            title: "Set your starting five & minutes",
-                            sub: `${e.lineup.length}/5 starters \xB7 ${d}/200 minutes`,
-                            done: e.lineup.length === 5 && d === 200,
-                            tab: "Rotation",
-                            icon: no,
-                          },
-                          {
-                            title: "Promise a role to every player",
-                            sub: `${e.roster.filter((f) => !f.redshirt && f.promise && f.promise !== "None").length} of ${i} promised \xB7 needed before opening night`,
-                            done: e.roster
-                              .filter((f) => !f.redshirt)
-                              .every((f) => f.promise && f.promise !== "None"),
-                            tab: "Roster",
-                            icon: nl,
-                          },
-                          {
-                            title: "Customize your nonconference schedule",
-                            sub: "12 games selected \xB7 adjust opponents and venues",
-                            done: !0,
-                            tab: "Schedule",
-                            icon: ql,
-                          },
-                          {
-                            title: "Resolve your recruiting offers",
-                            sub: `${e.prospects.filter((f) => f.offer).length} pending offers \xB7 ${e.round === 9 ? "last chance round" : `round ${Math.min(e.round, 8)} of 8`}`,
-                            done: !e.prospects.some((f) => f.offer),
-                            tab: "Recruiting",
-                            icon: Va,
-                          },
-                        ].map((f, y) =>
+                        children: steps.map((f, y) =>
                           (0, s.jsxs)(
                             "button",
                             {
@@ -12721,7 +13592,7 @@ function ZC({
                           children: [
                             (0, s.jsx)("span", {
                               className: `news-icon ${y === 0 ? "orange" : ""}`,
-                              children: y === 0 ? (0, s.jsx)(Vl, { size: 15 }) : (0, s.jsx)(It, { size: 14 }),
+                              children: (0, s.jsx)(newsIcon(f.title), { size: 15 }),
                             }),
                             (0, s.jsxs)("div", {
                               children: [
@@ -12756,6 +13627,7 @@ function ZC({
                       ],
                     }),
                     (0, s.jsx)(Wa, { value: e.rep }),
+                    (0, s.jsx)(Sparkline, { values: spark.rep, label: "Reputation by season" }),
                     tierOf(e) < 4 &&
                       (0, s.jsxs)("small", {
                         className: "next-tier",
@@ -13095,7 +13967,7 @@ function GameDay({ g: e, run: run, onClose: onClose }) {
             children: [(0, s.jsx)("span", { children: e.school.name }), (0, s.jsx)("strong", { children: fin ? last.us : sc })],
           }),
           (0, s.jsxs)("div", {
-            className: "gd-clock",
+            className: "gd-clock" + (half || fin ? " pause" : ""),
             children: [
               (0, s.jsx)("small", { children: lbl }),
               (0, s.jsx)("b", { children: fin ? "FINAL" : half && !to ? "HALFTIME" : clk(cur?.m, cur) }),
@@ -13641,51 +14513,42 @@ function ChampCelebration({ g: e, onClose: c, onSeason: g }) {
 function Top25Panel({ g: e }) {
   let t = W_top25(e),
     me = e.school.id,
+    myConf = (e.league[0] || {}).conf ?? 0,
     gp = e.schedule.filter((f) => f.played).length;
   return (0, s.jsx)(qe, {
     title: "Top 25",
     meta: gp
       ? `Poll after week ${W_poll(e).w}. Ranked by record and team strength, but the voters move slowly: one loss costs a few spots, and the preseason ranking fades over the first month.`
       : "Preseason poll: team strength plus last year's reputation, so big programs start high.",
-    children: (0, s.jsx)("div", {
-      className: "table-wrap",
-      children: (0, s.jsxs)("table", {
-        children: [
-          (0, s.jsx)("thead", {
-            children: (0, s.jsx)("tr", {
-              children: ["#", "MOVE", "TEAM", "RECORD", "NET RTG", "RATING", "CONFERENCE"].map((z) =>
-                (0, s.jsx)("th", { children: z }, z)
-              ),
-            }),
-          }),
-          (0, s.jsx)("tbody", {
-            children: t.map((x, i) =>
-              (0, s.jsxs)(
-                "tr",
-                {
-                  className: x.id === me ? "you-row" : "",
-                  children: [
-                    (0, s.jsx)("td", { children: i + 1 }),
-                    (0, s.jsx)("td", {
-                      className: "muted",
-                      children: x.pre || !x.chg ? "\u2013" : x.chg > 0 ? "\u25B2 " + x.chg : "\u25BC " + -x.chg,
-                    }),
-                    (0, s.jsx)("td", { children: (0, s.jsx)("strong", { children: x.name }) }),
-                    (0, s.jsx)("td", { children: `${x.wins}\u2013${x.losses}` }),
-                    (0, s.jsx)("td", { children: x.po ? (W_eff(x).net >= 0 ? "+" : "") + W_eff(x).net.toFixed(1) : "\u2013" }),
-                    (0, s.jsx)("td", { children: x.rating }),
-                    (0, s.jsx)("td", {
-                      className: "muted",
-                      children: (e.confNames || [])[x.conf ?? 0] || "",
-                    }),
-                  ],
-                },
-                x.id
-              )
-            ),
-          }),
-        ],
-      }),
+    children: (0, s.jsx)(DataTable, {
+      columns: [
+        { key: "rank", label: "#" },
+        {
+          key: "chg",
+          label: "MOVE",
+          num: !1,
+          get: (x) => (x.pre ? 0 : x.chg || 0),
+          render: (x) => (x.pre || !x.chg ? "–" : x.chg > 0 ? "▲ " + x.chg : "▼ " + -x.chg),
+          className: "muted",
+        },
+        { key: "name", label: "TEAM", render: (x) => (0, s.jsx)("strong", { children: x.name }) },
+        { key: "rec", label: "RECORD", num: !0, get: (x) => x.wins - x.losses, render: (x) => `${x.wins}–${x.losses}` },
+        {
+          key: "net",
+          label: "NET RTG",
+          num: !0,
+          get: (x) => (x.po ? W_eff(x).net : -999),
+          render: (x) => (x.po ? (W_eff(x).net >= 0 ? "+" : "") + W_eff(x).net.toFixed(1) : "–"),
+        },
+        { key: "rating", label: "RATING", num: !0 },
+        { key: "conf", label: "CONFERENCE", get: (x) => (e.confNames || [])[x.conf ?? 0] || "", className: "muted" },
+      ],
+      rows: t.map((x, i) => ({ ...x, rank: i + 1 })),
+      rowClass: (x) => (x.id === me ? "you-row" : ""),
+      filters: [
+        { label: "Your conference", test: (x) => (x.conf ?? 0) === myConf },
+        { label: "Top 10", test: (x) => x.rank <= 10 },
+      ],
     }),
   });
 }
@@ -14013,20 +14876,11 @@ function W_advPlayers(e) {
 function AdvStatsPanel({ g: e }) {
   let [v, setV] = (0, N.useState)("Teams"),
     f1 = (x) => x.toFixed(1),
-    th = (a) => a.map((z) => (0, s.jsx)("th", { children: z }, z)),
     table = (head, rows) =>
-      (0, s.jsx)("div", {
-        className: "table-wrap",
-        children: (0, s.jsxs)("table", {
-          children: [
-            (0, s.jsx)("thead", { children: (0, s.jsx)("tr", { children: th(head) }) }),
-            (0, s.jsx)("tbody", {
-              children: rows.map((r, i) =>
-                (0, s.jsx)("tr", { className: r.you ? "you-row" : "", children: r.c.map((c, k) => (0, s.jsx)("td", { children: c }, k)) }, i)
-              ),
-            }),
-          ],
-        }),
+      (0, s.jsx)(DataTable, {
+        columns: head.map((h, k) => ({ key: "c" + k, label: h })),
+        rows: rows.map((r) => ({ you: r.you, ...Object.fromEntries(r.c.map((c, k) => ["c" + k, c])) })),
+        rowClass: (r) => (r.you ? "you-row" : ""),
       }),
     teams =
       v === "Teams"
@@ -14791,7 +15645,32 @@ function ResumePanel({ g: e }) {
   });
 }
 
-function BracketTree({ rounds: r0, names: nm, me: me, regions: regions }) {
+// Item 7: the bracket is scaled to the width of its box (never scrolls sideways); Expand opens it in a full-window view, scaled the same way.
+function BracketTree(props) {
+  const [open, setOpen] = (0, N.useState)(!1),
+    big = (props.rounds || []).some((r) => r && r.length >= 4);
+  (0, N.useEffect)(() => {
+    if (!open) return;
+    const h = (z) => z.key === "Escape" && setOpen(!1);
+    document.addEventListener("keydown", h);
+    return () => document.removeEventListener("keydown", h);
+  }, [open]);
+  return (0, s.jsxs)("div", {
+    className: "ds-table-box bt-box",
+    children: [
+      big && (0, s.jsx)("button", { type: "button", className: "table-expand", "aria-label": "Expand table", title: "Open the bracket full screen", onClick: () => setOpen(!0), children: "\u2922" }),
+      (0, s.jsx)(BracketTreeInner, props),
+      open &&
+        (0, s.jsxs)("div", {
+          className: "table-overlay",
+          role: "dialog",
+          "aria-modal": "true",
+          children: [(0, s.jsx)("button", { type: "button", className: "table-close btn", onClick: () => setOpen(!1), children: "Close (Esc)" }), (0, s.jsx)(BracketTreeInner, props)],
+        }),
+    ],
+  });
+}
+function BracketTreeInner({ rounds: r0, names: nm, me: me, regions: regions }) {
   // a First Four round is shown as a line above the tree; the tree itself starts with the round of 64
   let ffRound = r0[0]?.[0]?.ff || r0[0]?.[0]?.pi ? r0[0] : null,
     r = ffRound ? r0.slice(1) : r0,
@@ -14804,7 +15683,9 @@ function BracketTree({ rounds: r0, names: nm, me: me, regions: regions }) {
       w.style.zoom = 1;
       let a = w.scrollWidth,
         c = el.clientWidth - 28;
-      (a > c && (w.style.zoom = Math.max(0.5, c / a)),
+      (a > c
+        ? (w.style.zoom = Math.max(0.25, c / a))
+        : el.closest(".table-overlay") && (w.style.zoom = Math.min(1.8, c / a)),
         (el.scrollLeft = Math.max(0, (el.scrollWidth - el.clientWidth) / 2)));
     };
     (fit(), window.addEventListener("resize", fit));
@@ -15321,7 +16202,7 @@ function SeasonModal({ g: e, onClose: a, tab0: tab0 }) {
   });
 }
 
-function ca({ label: e, value: a, note: t, icon: l, onClick: u }) {
+function ca({ label: e, value: a, note: t, icon: l, onClick: u, spark: sp, sparkNote: sn }) {
   return (0, s.jsxs)(u ? "button" : "div", {
     type: u ? "button" : void 0,
     onClick: u,
@@ -15330,6 +16211,7 @@ function ca({ label: e, value: a, note: t, icon: l, onClick: u }) {
       (0, s.jsxs)("div", { children: [(0, s.jsx)("span", { children: e }), l] }),
       (0, s.jsx)("strong", { children: a }),
       (0, s.jsx)("p", { children: t }),
+      sp && sp.length >= 2 && (0, s.jsx)(Sparkline, { values: sp, label: sn }),
       u &&
         (0, s.jsx)("small", {
           className: "metric-link",
@@ -15853,12 +16735,206 @@ function YC({ g: e, select: a, run: t, navigate: l }) {
   );
 }
 
+// Recruiting tables (item 5): High school, Transfer portal and My recruits share this table (built on DataTable);
+// the Walk-on pool uses DataTable directly (0115-o0.js). Reads the career only: nothing here changes a number.
+// Key numbers sit right after the name: rating, interest (bar), signing chance (bar), NIL ask; then who leads the race,
+// the star level and status, the player's priority, and the buttons.
+var RT_RIVAL = new Map();
+function rtRivals(e, p) {
+  if (p.rv) return p.rv;
+  const k = p.id + "|" + e.year + "|" + e.round;
+  if (!RT_RIVAL.has(k)) {
+    if (RT_RIVAL.size > 3000) RT_RIVAL.clear();
+    RT_RIVAL.set(k, rivalsOf(e, p));
+  }
+  return RT_RIVAL.get(k);
+}
+// Who is ahead for this recruit: the same comparison the profile uses (your progress x 0.6 + interest x 0.4 against the rivals' scores).
+// Transfers show the schools bidding for them instead (item 42).
+function rtRace(e, p) {
+  if (p.status !== "Available") return null;
+  if (p.fid && p.bd && p.bd.length) return { you: !1, text: `${p.bd.length} bid${p.bd.length === 1 ? "" : "s"} \xB7 best: ${p.bd[0].n}` };
+  if (p.origin === "Walk-on") return null;
+  const rv = rtRivals(e, p),
+    me = Math.round(p.progress * 0.6 + p.interest * 0.4),
+    lead = [...rv, { n: "You", s: me }].sort((x, y) => y.s - x.s)[0];
+  return lead ? { you: lead.n === "You", text: lead.n === "You" ? "You lead" : `${lead.n} leads` } : null;
+}
+function rtChance(e, p) {
+  return p.origin === "Walk-on" ? fl(e, p) : Nn(e, p, p.offer ? p.offer.nil : p.ask, p.offer ? p.offer.role : "Rotation");
+}
+function RtBar({ value: e, label: a }) {
+  return (0, s.jsxs)("div", {
+    className: "rt-bar",
+    "aria-label": a,
+    children: [(0, s.jsxs)("strong", { children: [Math.round(e), "%"] }), (0, s.jsx)(Wa, { value: e })],
+  });
+}
+function RecruitTable({ g: e, rows: a, run: t, select: l, kind: u, empty: o }) {
+  const portal = u === "Transfer",
+    board = u === "Board",
+    line = (v) =>
+      portal
+        ? `${v.pos2 ? v.pos + "/" + v.pos2 : v.pos} \xB7 ${qs(v.height)} \xB7 ${v.year >= 4 ? "Grad transfer" : Zl(v)} \xB7 ${5 - v.year} yr left \xB7 eligible now`
+        : board
+          ? `${v.pos2 ? v.pos + "/" + v.pos2 : v.pos} \xB7 ${v.origin} \xB7 ${Zl(v)}`
+          : `${v.pos2 ? v.pos + "/" + v.pos2 : v.pos} \xB7 ${qs(v.height)} \xB7 Age ${v.age}${v.intl ? " \xB7 International" + (v.cty ? " (" + v.cty + ")" : "") : ""}`,
+    remove = (v) =>
+      (!v.offer || window.confirm(`Remove ${v.name}? Your pending offer will be withdrawn.`)) &&
+      t({ type: board ? "removeBoard" : "removeRecruit", id: v.id }),
+    cols = [
+      {
+        key: "name",
+        label: "PLAYER",
+        render: (v) =>
+          (0, s.jsxs)("button", {
+            className: "player-cell",
+            onClick: () => l(v.id),
+            children: [
+              (0, s.jsx)(Ja, { p: v, size: "tiny" }),
+              (0, s.jsxs)("div", {
+                children: [
+                  (0, s.jsx)("strong", { children: v.name }),
+                  (0, s.jsx)("span", { children: line(v) }),
+                  portal && prevLine(v) ? (0, s.jsx)("span", { className: "prev-line", children: prevLine(v) }) : null,
+                ],
+              }),
+            ],
+          }),
+      },
+      {
+        key: "ovr",
+        label: "RATING",
+        num: !0,
+        get: (v) => Tt(v),
+        render: (v) =>
+          (0, s.jsxs)(s.Fragment, {
+            children: [
+              (0, s.jsx)("strong", { className: "rating-inline", children: Tt(v) }),
+              (0, s.jsx)("span", { className: "table-sub", children: v.origin === "Walk-on" || v.scouted >= 2 ? "Scouted" : "Estimated" }),
+            ],
+          }),
+      },
+      { key: "interest", label: "INTEREST", num: !0, get: (v) => v.interest, render: (v) => (0, s.jsx)(RtBar, { value: v.interest, label: "Interest" }) },
+      {
+        key: "chance",
+        label: "SIGN CHANCE",
+        num: !0,
+        get: (v) => (v.status === "Available" ? rtChance(e, v) : -1),
+        render: (v) =>
+          v.status === "Available" ? (0, s.jsx)(RtBar, { value: rtChance(e, v), label: "Signing chance" }) : (0, s.jsx)("span", { className: "muted", children: "–" }),
+      },
+      {
+        key: "ask",
+        label: "NIL ASK",
+        num: !0,
+        get: (v) => v.ask || 0,
+        render: (v) =>
+          (0, s.jsxs)(s.Fragment, {
+            children: [
+              (0, s.jsx)("strong", { children: q(v.ask || 0) }),
+              (0, s.jsx)("span", { className: "table-sub", children: v.offer ? `${q(v.offer.nil)} offered` : "per year" }),
+            ],
+          }),
+      },
+      {
+        key: "race",
+        label: "RIVALS",
+        get: (v) => (rtRace(e, v) || { text: "" }).text,
+        render: (v) => {
+          const r = rtRace(e, v);
+          return r ? (0, s.jsx)("span", { className: "rival-tag " + (r.you ? "you" : "them"), children: r.text }) : (0, s.jsx)("span", { className: "muted", children: "–" });
+        },
+      },
+      board && {
+        key: "progress",
+        label: "DECISION",
+        num: !0,
+        get: (v) => (v.status === "Available" ? v.progress : 101),
+        render: (v) => (v.status === "Available" ? (0, s.jsx)(RtBar, { value: v.progress, label: "Decision progress" }) : (0, s.jsx)("span", { className: "table-sub", children: "Decided" })),
+      },
+      {
+        key: "stars",
+        label: "STATUS",
+        num: !1,
+        get: (v) => v.stars,
+        render: (v) =>
+          (0, s.jsxs)(s.Fragment, {
+            children: [
+              (0, s.jsx)(Xn, { n: v.stars }),
+              (0, s.jsx)("span", {
+                className: "table-sub",
+                children:
+                  v.status === "Signed"
+                    ? "Committed to you"
+                    : v.offer
+                      ? "Offer pending"
+                      : v.committedTo && v.status !== "Available"
+                        ? v.committedTo
+                        : v.status,
+              }),
+            ],
+          }),
+      },
+      !board && { key: "priority", label: "PRIORITY", className: "muted" },
+      {
+        key: "act",
+        label: "",
+        sort: !1,
+        render: (v) =>
+          (0, s.jsxs)("div", {
+            className: "rt-actions",
+            children: [
+              !board &&
+                (0, s.jsx)("button", {
+                  className: `icon-btn ${v.target ? "accent" : ""}`,
+                  "aria-label": v.target ? `Unwatch ${v.name}` : `Watch ${v.name}`,
+                  onClick: () => t({ type: "target", id: v.id }),
+                  children: (0, s.jsx)(ro, { size: 18, fill: v.target ? "currentColor" : "none" }),
+                }),
+              board &&
+                v.status === "Available" &&
+                (0, s.jsx)("select", {
+                  "aria-label": `Choice rank for ${v.name}`,
+                  value: v.rank || 0,
+                  onChange: (z) => t({ type: "rankRecruit", id: v.id, rank: +z.target.value }),
+                  children: [
+                    [0, "Choice —"],
+                    [1, "1st choice"],
+                    [2, "2nd choice"],
+                    [3, "3rd choice"],
+                  ].map((z) => (0, s.jsx)("option", { value: z[0], children: z[1] }, z[0])),
+                }),
+              (0, s.jsx)(X, { small: !0, onClick: () => l(v.id), children: "View" }),
+              v.status !== "Signed" &&
+                (0, s.jsx)(X, { small: !0, className: "cut-btn", title: "Remove this recruit from the list", onClick: () => remove(v), children: "Remove" }),
+            ],
+          }),
+      },
+    ].filter(Boolean);
+  return (0, s.jsx)("div", {
+    className: "panel recruit-table",
+    children: (0, s.jsx)(DataTable, {
+      columns: cols,
+      rows: a,
+      tableClass: "prospect-table",
+      rowClass: (v) => (v.status === "Signed" ? "row-signed" : v.target ? "row-target" : ""),
+      empty: o,
+      expand: !1,
+    }),
+  });
+}
+// Chip row for a filter: [value, label] pairs.
+function ChipFilter({ value: e, onChange: a, items: t, label: l }) {
+  return (0, s.jsx)(Tabs, { tabs: t.map(([u, o]) => ({ id: u, label: o })), value: e, onChange: a, label: l });
+}
+
 function QC({ g: e, source: a, run: t, select: l }) {
   let [u, o] = (0, N.useState)("All"),
     [r, n] = (0, N.useState)("All"),
     [i, d] = (0, N.useState)("Available"),
     [f, y] = (0, N.useState)(""),
-    [h, p] = (0, N.useState)("Interest"),
+    h = "Interest",
     C = e.prospects
       .filter(
         (v) =>
@@ -15989,196 +17065,50 @@ function QC({ g: e, source: a, run: t, select: l }) {
           ],
         }),
       (0, s.jsxs)("div", {
-        className: "toolbar wrap",
+        className: "toolbar wrap recruit-filters",
         children: [
           (0, s.jsxs)("div", {
             className: "search-field",
             children: [
               (0, s.jsx)(Va, { size: 17 }),
               (0, s.jsx)("input", {
-                placeholder: "Search players\u2026",
+                placeholder: "Search players…",
                 "aria-label": "Search players",
                 value: f,
                 onChange: (v) => y(v.target.value),
               }),
             ],
           }),
-          (0, s.jsx)("select", {
-            "aria-label": "Position",
-            value: u,
-            onChange: (v) => o(v.target.value),
-            children: ["All", ...Le].map((v) =>
-              (0, s.jsx)("option", { value: v, children: v === "All" ? "All positions" : v }, v)
-            ),
-          }),
-          (0, s.jsxs)("select", {
-            "aria-label": "Stars",
-            value: r,
-            onChange: (v) => n(v.target.value),
-            children: [
-              (0, s.jsx)("option", { value: "All", children: "All star levels" }),
-              [0, 1, 2, 3, 4, 5].map((v) =>
-                (0, s.jsx)(
-                  "option",
-                  { value: v, children: v ? `${v} star${v > 1 ? "s" : ""}` : "Unranked" },
-                  v
-                )
-              ),
-            ],
-          }),
-          (0, s.jsx)("select", {
-            "aria-label": "Recruiting status",
+          (0, s.jsx)(ChipFilter, {
+            label: "Recruiting status",
             value: i,
-            onChange: (v) => d(v.target.value),
-            children: ["Available", "Targets", "Offers", "Signed", "Committed elsewhere", "All"].map((v) =>
-              (0, s.jsx)("option", { children: v }, v)
-            ),
+            onChange: d,
+            items: ["Available", "Targets", "Offers", "Signed", "Committed elsewhere", "All"].map((v) => [v, v === "Targets" ? "Watching" : v]),
           }),
-          (0, s.jsx)("select", {
-            "aria-label": "Sort prospects",
-            value: h,
-            onChange: (v) => p(v.target.value),
-            children: ["Interest", "Stars", "NIL ask"].map((v) => (0, s.jsx)("option", { children: v }, v)),
+          (0, s.jsx)(ChipFilter, {
+            label: "Position",
+            value: u,
+            onChange: o,
+            items: ["All", ...Le].map((v) => [v, v === "All" ? "All positions" : v]),
+          }),
+          (0, s.jsx)(ChipFilter, {
+            label: "Stars",
+            value: r,
+            onChange: n,
+            items: [["All", "All stars"], ...[5, 4, 3, 2, 1, 0].map((v) => [String(v), v ? `${v}★` : "Unranked"])],
           }),
         ],
       }),
-      (0, s.jsxs)("div", {
-        className: "panel table-wrap",
-        children: [
-          (0, s.jsxs)("table", {
-            className: "prospect-table",
-            children: [
-              (0, s.jsx)("thead", {
-                children: (0, s.jsxs)("tr", {
-                  children: [
-                    (0, s.jsx)("th", { children: "PLAYER" }),
-                    (0, s.jsx)("th", { children: "RATING" }),
-                    (0, s.jsx)("th", { children: "RECRUITMENT" }),
-                    (0, s.jsx)("th", { children: "NIL / YEAR" }),
-                    (0, s.jsx)("th", { children: "PRIORITY" }),
-                    (0, s.jsx)("th", { children: "INTEREST" }),
-                    (0, s.jsx)("th", {}),
-                  ],
-                }),
-              }),
-              (0, s.jsx)("tbody", {
-                children: C.map((v) =>
-                  (0, s.jsxs)(
-                    "tr",
-                    {
-                      children: [
-                        (0, s.jsx)("td", {
-                          children: (0, s.jsxs)("button", {
-                            className: "player-cell",
-                            onClick: () => l(v.id),
-                            children: [
-                              (0, s.jsx)(Ja, { p: v, size: "tiny" }),
-                              (0, s.jsxs)("div", {
-                                children: [
-                                  (0, s.jsxs)("strong", {
-                                    children: [
-                                      v.name,
-                                      " ",
-                                      (0, s.jsxs)("em", { className: "name-ovr", children: [Tt(v), " OVR"] }),
-                                    ],
-                                  }),
-                                  (0, s.jsxs)("span", {
-                                    children: [
-                                      v.pos2 ? v.pos + "/" + v.pos2 : v.pos,
-                                      " \xB7 ",
-                                      qs(v.height),
-                                      " \xB7 ",
-                                      a === "Transfer"
-                                        ? `${v.year >= 4 ? "Grad transfer" : Zl(v)} \xB7 ${5 - v.year} yr left \xB7 eligible now`
-                                        : "Age " + v.age + (v.intl ? " \xB7 International" + (v.cty ? " (" + v.cty + ")" : "") : ""),
-                                    ],
-                                  }),
-                                  a === "Transfer" && prevLine(v)
-                                    ? (0, s.jsx)("span", { className: "prev-line", children: prevLine(v) })
-                                    : null,
-                                ],
-                              }),
-                            ],
-                          }),
-                        }),
-                        (0, s.jsxs)("td", {
-                          children: [
-                            (0, s.jsx)("strong", { className: "rating-inline", children: Tt(v) }),
-                            (0, s.jsx)("span", {
-                              className: "table-sub",
-                              children: v.scouted >= 2 ? "Scouted" : "Estimated",
-                            }),
-                          ],
-                        }),
-                        (0, s.jsxs)("td", {
-                          children: [
-                            (0, s.jsx)(Xn, { n: v.stars }),
-                            (0, s.jsx)("span", {
-                              className: "table-sub",
-                              children: v.offer ? "Offer pending" : v.status,
-                            }),
-                          ],
-                        }),
-                        (0, s.jsxs)("td", {
-                          children: [
-                            (0, s.jsx)("strong", { children: q(v.ask) }),
-                            (0, s.jsx)("span", {
-                              className: "table-sub",
-                              children: v.offer ? `${q(v.offer.nil)} offered` : "Requested",
-                            }),
-                          ],
-                        }),
-                        (0, s.jsx)("td", { children: v.priority }),
-                        (0, s.jsxs)("td", {
-                          children: [
-                            (0, s.jsxs)("strong", { children: [Math.round(v.interest), "%"] }),
-                            (0, s.jsx)(Wa, { value: v.interest }),
-                          ],
-                        }),
-                        (0, s.jsxs)("td", {
-                          children: [
-                            (0, s.jsx)("button", {
-                              className: `icon-btn ${v.target ? "accent" : ""}`,
-                              "aria-label": v.target ? `Unwatch ${v.name}` : `Watch ${v.name}`,
-                              onClick: () => {
-                                t({ type: "target", id: v.id });
-                              },
-                              children: (0, s.jsx)(ro, {
-                                size: 18,
-                                fill: v.target ? "currentColor" : "none",
-                              }),
-                            }),
-                            (0, s.jsx)(X, { small: !0, onClick: () => l(v.id), children: "View" }),
-                            v.status !== "Signed" &&
-                              (0, s.jsx)(X, {
-                                small: !0,
-                                className: "cut-btn",
-                                title: "Remove this recruit from the list",
-                                onClick: () => {
-                                  (!v.offer ||
-                                    window.confirm(
-                                      `Remove ${v.name}? Your pending offer will be withdrawn.`
-                                    )) &&
-                                    t({ type: "removeRecruit", id: v.id });
-                                },
-                                children: "Remove",
-                              }),
-                          ],
-                        }),
-                      ],
-                    },
-                    v.id
-                  )
-                ),
-              }),
-            ],
-          }),
-          !C.length &&
-            (0, s.jsx)(yl, {
-              title: "No matching players",
-              body: "Try another position, star level, or recruiting status.",
-            }),
-        ],
+      (0, s.jsx)(RecruitTable, {
+        g: e,
+        rows: C,
+        run: t,
+        select: l,
+        kind: a,
+        empty: (0, s.jsx)(yl, {
+          title: "No matching players",
+          body: "Try another position, star level, or recruiting status.",
+        }),
       }),
       (0, s.jsx)("p", {
         className: "footnote",
@@ -16232,23 +17162,29 @@ function KC({ g: e, run: a, select: t }) {
               ),
             })
           : (0, s.jsx)("div", {
-              className: "chips min-plan-chips",
+              className: "plan-cards",
+              role: "radiogroup",
+              "aria-label": "Minutes plan",
               children: Object.keys(MINP).map((d) =>
-                (0, s.jsx)(
+                (0, s.jsxs)(
                   "button",
                   {
-                    className: d === mp ? "active" : "",
-                    title: MINP[d].note,
+                    role: "radio",
+                    "aria-checked": d === mp,
+                    className: "plan-card" + (d === mp ? " active" : ""),
                     onClick: () => a({ type: "minPreset", value: d }),
-                    children: d === "Stars" ? "Star players" : d,
+                    children: [
+                      (0, s.jsx)("strong", { children: d === "Stars" ? "Star players" : d }),
+                      (0, s.jsx)("span", { children: MINP[d].note }),
+                    ],
                   },
                   d
                 )
               ),
             }),
-        (0, s.jsx)("small", {
-          children: MINP[mp].note + (cp ? "" : " Choosing a plan keeps your starters and redoes the minutes."),
-        }),
+        cp
+          ? (0, s.jsx)("small", { children: MINP[mp].note })
+          : (0, s.jsx)("small", { children: "Choosing a plan keeps your starters and redoes the minutes." }),
       ],
     });
   return (0, s.jsxs)(s.Fragment, {
@@ -16513,7 +17449,7 @@ function KC({ g: e, run: a, select: t }) {
                           }),
                         ],
                       }),
-                      (0, s.jsx)(Wa, { value: l / 2 }),
+                      (0, s.jsx)(RotationBar, { roster: e.roster, lineup: e.lineup, total: l }),
                       (0, s.jsx)("p", {
                         children:
                           l === 200
@@ -16634,7 +17570,9 @@ function KC({ g: e, run: a, select: t }) {
                                 (0, s.jsx)(WC, { p: r, run: a }, `${r.id}-${r.minutes}`),
                                 (0, s.jsx)("span", {
                                   className: "min-bar",
-                                  children: (0, s.jsx)("i", { style: { width: `${(r.minutes / 40) * 100}%` } }),
+                                  role: "img",
+                                  "aria-label": `${r.minutes} of 40 minutes`,
+                                  children: (0, s.jsx)("i", { style: { width: `${Math.min(100, (r.minutes / 40) * 100)}%` } }),
                                 }),
                               ],
                             }),
@@ -17203,10 +18141,35 @@ function RevenuePanel({ g: e }) {
       ["Conference revenue share", r.conf, `Your conference ranks ${cm.rank} of ${cm.n} by strength (payout x${cm.mult.toFixed(2)}); it changes as the league does`],
       ["Tournament payouts", r.tourney, "One-time money for last season's tournament wins, plus a share of the units your conference mates earned"],
     ];
-  return (0, s.jsx)(qe, {
+  return (0, s.jsxs)(qe, {
     title: "Where your NIL comes from",
     meta: "Your annual base budget is the sum of these streams and is rebuilt at the end of every season.",
-    children: (0, s.jsx)("div", {
+    children: [
+      (0, s.jsxs)("div", {
+        className: "ds-chart-row",
+        children: [
+          (0, s.jsxs)("div", {
+            children: [
+              (0, s.jsx)("h3", { className: "ds-chart-title", children: "This year's streams" }),
+              (0, s.jsx)(ShareBar, { parts: rows.map((z) => ({ label: z[0], value: z[1] })), fmt: q, label: "Share of each revenue stream" }),
+            ],
+          }),
+          new Set([...(e.history || []).map((h) => h.year), e.year]).size >= 2 &&
+            (0, s.jsxs)("div", {
+              children: [
+                (0, s.jsx)("h3", { className: "ds-chart-title", children: "Total budget by season" }),
+                (0, s.jsx)(LineChart, {
+                  series: [{ name: "Budget", pts: [...e.history.map((h) => [h.year, h.budget]), ...(e.history.some((h) => h.year === e.year) ? [] : [[e.year, e.budget]])].filter((z) => z[1] > 0) }],
+                  fx: (z) => `'${String(z).slice(2)}`,
+                  fy: q,
+                  label: "Total NIL budget by season",
+                  height: 140,
+                }),
+              ],
+            }),
+        ],
+      }),
+      (0, s.jsx)("div", {
       className: "table-wrap",
       children: (0, s.jsxs)("table", {
         children: [
@@ -17256,6 +18219,7 @@ function RevenuePanel({ g: e }) {
         ],
       }),
     }),
+    ],
   });
 }
 
@@ -17267,10 +18231,34 @@ function MarketPanel({ g: e }) {
   });
 }
 function PosMarket(e, pm) {
-  return (0, s.jsx)(qe, {
+  return (0, s.jsxs)(qe, {
     title: "Price by position",
     meta: "Each position has its own price index. A position with few good players across the country costs more, and one with plenty costs less. It is updated every offseason and applies to new asks.",
-    children: (0, s.jsx)("div", {
+    children: [
+      (0, s.jsx)("div", {
+        className: "ds-bars",
+        role: "img",
+        "aria-label": "Price index by position (1.00 = normal)",
+        children: Le.map((k) => {
+          const v = pm[k] || 1;
+          return (0, s.jsxs)(
+            "div",
+            {
+              className: "ds-bars-row",
+              children: [
+                (0, s.jsx)("span", { children: k }),
+                (0, s.jsx)("span", {
+                  className: "ds-bars-track",
+                  children: (0, s.jsx)("i", { className: v >= 1 ? "up" : "down", style: v >= 1 ? { left: "50%", width: `${Math.min(50, (v - 1) * 166)}%` } : { right: "50%", width: `${Math.min(50, (1 - v) * 166)}%` } }),
+                }),
+                (0, s.jsx)("b", { children: "x" + v.toFixed(2) }),
+              ],
+            },
+            k
+          );
+        }),
+      }),
+      (0, s.jsx)("div", {
       className: "table-wrap",
       children: (0, s.jsxs)("table", {
         children: [
@@ -17301,13 +18289,21 @@ function PosMarket(e, pm) {
         ],
       }),
     }),
+    ],
   });
 }
 function MarketRates(e, m) {
-  return (0, s.jsx)(qe, {
+  return (0, s.jsxs)(qe, {
     title: "NIL market rates",
     meta: `Market index ${m.toFixed(2)}. Asking prices rise a few percent a year, faster when donors are excited. A raise you do not give can cost you the player.`,
-    children: (0, s.jsx)("div", {
+    children: [
+      (0, s.jsx)(LineChart, {
+        series: ["High school", "Transfer", "Roster"].map((o) => ({ name: o === "Roster" ? "Returning player" : o, pts: [55, 62, 70, 78, 85, 92].map((r) => [r, W_ask(e, r, o)]) })),
+        fx: (r) => r + " OVR",
+        fy: q,
+        label: "Yearly NIL ask by player rating",
+      }),
+      (0, s.jsx)("div", {
       className: "table-wrap",
       children: (0, s.jsxs)("table", {
         children: [
@@ -17337,6 +18333,7 @@ function MarketRates(e, m) {
         ],
       }),
     }),
+    ],
   });
 }
 
@@ -18324,10 +19321,10 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
     m = !o || e.scouted >= 2,
     c = e.stats.gp ? e.stats : e.history.at(-1)?.stats,
     L = [
-      { name: "OFFENSE", start: 0, end: 6 },
-      { name: "DEFENSE", start: 6, end: 10 },
-      { name: "REBOUNDING", start: 10, end: 12 },
-      { name: "PHYSICAL", start: 12, end: 16 },
+      { name: "SHOOTING", idx: [0, 1, 2, 3] },
+      { name: "SKILL", idx: [4, 5, 10, 11] },
+      { name: "DEFENSE", idx: [6, 7, 8, 9] },
+      { name: "ATHLETICISM", idx: [12, 13, 14, 15] },
     ];
   return (0, s.jsxs)(Ao, {
     title: `${e.name} player profile`,
@@ -18882,6 +19879,7 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
                     }),
                   ],
                 }),
+                !o && (0, s.jsx)(GrowthChart, { p: e }),
               ],
             }),
           n === "Attributes" &&
@@ -18927,9 +19925,15 @@ function t0({ p: e, g: a, run: t, onClose: l, select: u }) {
                       "div",
                       {
                         children: [
-                          (0, s.jsx)("h4", { children: g.name }),
-                          il.slice(g.start, g.end).map((I, G) => {
-                            let w = g.start + G;
+                          (0, s.jsxs)("h4", {
+                            className: "attr-group-head",
+                            children: [
+                              g.name,
+                              m && (0, s.jsx)("span", { children: Math.round(g.idx.reduce((z, k) => z + e.attrs[k], 0) / g.idx.length) }),
+                            ],
+                          }),
+                          g.idx.map((w) => {
+                            let I = il[w];
                             return (0, s.jsxs)(
                               "div",
                               {
@@ -19846,139 +20850,16 @@ function u0({ g: e, run: a, select: t }) {
           ],
         }),
       vw === "My recruits" &&
-        (0, s.jsx)("div", {
-          className: "board-grid",
-          children: r.map((n) =>
-            (0, s.jsxs)(
-              "button",
-              {
-                className: `board-card ${n.status === "Signed" ? "board-signed" : ""}`,
-                onClick: () => t(n.id),
-                children: [
-                  (0, s.jsxs)("div", {
-                    className: "player-cell",
-                    children: [
-                      (0, s.jsx)(Ja, { p: n, size: "small" }),
-                      (0, s.jsxs)("div", {
-                        children: [
-                          (0, s.jsxs)("strong", {
-                            children: [
-                              n.name,
-                              " ",
-                              (0, s.jsxs)("em", { className: "name-ovr", children: [Tt(n), " OVR"] }),
-                            ],
-                          }),
-                          (0, s.jsxs)("span", {
-                            children: [
-                              n.pos2 ? n.pos + "/" + n.pos2 : n.pos,
-                              " \xB7 ",
-                              n.origin,
-                              " \xB7 ",
-                              Zl(n),
-                            ],
-                          }),
-                          (0, s.jsx)(Xn, { n: n.stars }),
-                        ],
-                      }),
-                    ],
-                  }),
-                  (0, s.jsxs)("div", {
-                    className: "row between",
-                    children: [
-                      (0, s.jsx)(he, {
-                        tone: n.status === "Signed" ? "green" : n.status === "Available" ? "orange" : "red",
-                        children: n.status === "Signed" ? "COMMITTED" : n.offer ? "OFFER PENDING" : n.status,
-                      }),
-                      (0, s.jsx)("strong", {
-                        children: n.status === "Available" ? `${n.progress}%` : "Decision made",
-                      }),
-                    ],
-                  }),
-                  (0, s.jsx)(Wa, { value: n.progress, tone: n.status === "Signed" ? "green" : "" }),
-                  (0, s.jsx)("p", {
-                    children:
-                      n.status === "Available"
-                        ? n.offer
-                          ? `${Nn(e, n, n.offer.nil, n.offer.role)}% signing chance \xB7 ${q(n.offer.nil)}/yr \xB7 ${n.offer.role}`
-                          : "Watching \xB7 Scout or offer to advance recruitment"
-                        : n.committedTo
-                          ? `${n.committedTo} \xB7 ${n.decisionYear || e.year}, round ${n.decisionRound || "\u2014"}`
-                          : `Invitation declined \xB7 round ${n.decisionRound || "\u2014"}`,
-                  }),
-                  n.status === "Available" &&
-                    (0, s.jsxs)("div", {
-                      className: "board-metrics",
-                      children: [
-                        (0, s.jsxs)("span", {
-                          children: [
-                            "Interest ",
-                            (0, s.jsxs)("b", { children: [Math.round(n.interest), "%"] }),
-                          ],
-                        }),
-                        (0, s.jsxs)("span", {
-                          children: [
-                            "Est. signing chance ",
-                            (0, s.jsxs)("b", {
-                              children: [
-                                Nn(e, n, n.offer ? n.offer.nil : n.ask, n.offer ? n.offer.role : "Rotation"),
-                                "%",
-                              ],
-                            }),
-                          ],
-                        }),
-                        (0, s.jsxs)("label", {
-                          children: [
-                            "Choice ",
-                            (0, s.jsx)("select", {
-                              value: n.rank || 0,
-                              onClick: (z) => z.stopPropagation(),
-                              onChange: (z) => {
-                                a({ type: "rankRecruit", id: n.id, rank: +z.target.value });
-                              },
-                              children: [
-                                [0, "\u2014"],
-                                [1, "1st"],
-                                [2, "2nd"],
-                                [3, "3rd"],
-                              ].map((z) => (0, s.jsx)("option", { value: z[0], children: z[1] }, z[0])),
-                            }),
-                          ],
-                        }),
-                      ],
-                    }),
-                  n.status !== "Signed" &&
-                    (0, s.jsx)("span", {
-                      role: "button",
-                      tabIndex: 0,
-                      className: "btn small cut-btn board-remove",
-                      title: "Remove from my recruits",
-                      onClick: (i) => {
-                        (i.stopPropagation(),
-                          (!n.offer ||
-                            window.confirm(`Remove ${n.name}? Your pending offer will be withdrawn.`)) &&
-                            a({ type: "removeBoard", id: n.id }));
-                      },
-                      onKeyDown: (i) => {
-                        (i.key === "Enter" || i.key === " ") &&
-                          (i.preventDefault(),
-                          i.stopPropagation(),
-                          (!n.offer ||
-                            window.confirm(`Remove ${n.name}? Your pending offer will be withdrawn.`)) &&
-                            a({ type: "removeBoard", id: n.id }));
-                      },
-                      children: "Remove",
-                    }),
-                ],
-              },
-              n.id
-            )
-          ),
-        }),
-      vw === "My recruits" &&
-        !r.length &&
-        (0, s.jsx)(yl, {
-          title: "Your board is waiting",
-          body: "Bookmark, scout, or offer a high school recruit or transfer to track them here.",
+        (0, s.jsx)(RecruitTable, {
+          g: e,
+          rows: r,
+          run: a,
+          select: t,
+          kind: "Board",
+          empty: (0, s.jsx)(yl, {
+            title: "Your board is waiting",
+            body: "Bookmark, scout, or offer a high school recruit or transfer to track them here.",
+          }),
         }),
       vw === "Commitment history" &&
         (0, s.jsxs)(qe, {
@@ -20112,11 +20993,11 @@ function o0({ g: e, run: a, select: t }) {
               }),
             ],
           }),
-          (0, s.jsx)("select", {
-            "aria-label": "Walk-on position",
+          (0, s.jsx)(ChipFilter, {
+            label: "Walk-on position",
             value: l,
-            onChange: (p) => u(p.target.value),
-            children: ["All", ...Le].map((p) => (0, s.jsx)("option", { children: p }, p)),
+            onChange: u,
+            items: ["All", ...Le].map((p) => [p, p === "All" ? "All positions" : p]),
           }),
           (0, s.jsx)("select", {
             "aria-label": "Sort walk-ons",
@@ -20134,94 +21015,72 @@ function o0({ g: e, run: a, select: t }) {
           (0, s.jsx)(Zn, { g: e, run: a }),
         ],
       }),
-      (0, s.jsxs)("div", {
-        className: "panel table-wrap",
-        children: [
-          (0, s.jsxs)("table", {
-            children: [
-              (0, s.jsx)("thead", {
-                children: (0, s.jsxs)("tr", {
+      (0, s.jsx)("div", {
+        className: "panel recruit-table",
+        children: (0, s.jsx)(DataTable, {
+          tableClass: "prospect-table",
+          expand: !1,
+          rows: y,
+          rowClass: (p) => (p.status === "Signed" ? "row-signed" : ""),
+          empty: (0, s.jsx)(yl, {
+            title: "No matching walk-ons",
+            body: "Change your filters or show players who have already made a decision.",
+          }),
+          columns: [
+            {
+              key: "name",
+              label: "PLAYER",
+              render: (p) =>
+                (0, s.jsxs)("button", {
+                  className: "player-cell",
+                  onClick: () => t(p.id),
                   children: [
-                    (0, s.jsx)("th", { children: "PLAYER" }),
-                    (0, s.jsx)("th", { children: "OVR" }),
-                    (0, s.jsx)("th", { children: "HEIGHT / AGE" }),
-                    (0, s.jsx)("th", { children: "ACCEPTANCE" }),
-                    (0, s.jsx)("th", { children: "STATUS" }),
-                    (0, s.jsx)("th", {}),
+                    (0, s.jsx)(Ja, { p, size: "tiny" }),
+                    (0, s.jsxs)("div", {
+                      children: [
+                        (0, s.jsx)("strong", { children: p.name }),
+                        (0, s.jsxs)("span", { children: [p.pos2 ? p.pos + "/" + p.pos2 : p.pos, " \xB7 ", Zl(p)] }),
+                      ],
+                    }),
                   ],
                 }),
-              }),
-              (0, s.jsx)("tbody", {
-                children: y.map((p) =>
-                  (0, s.jsxs)(
-                    "tr",
-                    {
-                      children: [
-                        (0, s.jsx)("td", {
-                          children: (0, s.jsxs)("button", {
-                            className: "player-cell",
-                            onClick: () => t(p.id),
-                            children: [
-                              (0, s.jsx)(Ja, { p, size: "tiny" }),
-                              (0, s.jsxs)("div", {
-                                children: [
-                                  (0, s.jsxs)("strong", {
-                                    children: [
-                                      p.name,
-                                      " ",
-                                      (0, s.jsxs)("em", { className: "name-ovr", children: [p.ovr, " OVR"] }),
-                                    ],
-                                  }),
-                                  (0, s.jsxs)("span", {
-                                    children: [p.pos2 ? p.pos + "/" + p.pos2 : p.pos, " \xB7 ", Zl(p)],
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                        }),
-                        (0, s.jsxs)("td", {
-                          children: [
-                            (0, s.jsx)("strong", { children: p.ovr }),
-                            p.ovr >= 60 &&
-                              (0, s.jsx)("span", {
-                                className: "table-sub orange-text",
-                                children: "RARE FIND",
-                              }),
-                          ],
-                        }),
-                        (0, s.jsxs)("td", { children: [qs(p.height), " \xB7 ", p.age] }),
-                        (0, s.jsxs)("td", { children: [fl(e, p), "%", (0, s.jsx)(Wa, { value: fl(e, p) })] }),
-                        (0, s.jsx)("td", {
-                          children: (0, s.jsx)(he, {
-                            tone: p.status === "Signed" ? "green" : "",
-                            children: p.status === "Signed" ? "Committed" : p.status,
-                          }),
-                        }),
-                        (0, s.jsx)("td", {
-                          children: (0, s.jsx)(X, {
-                            small: !0,
-                            disabled: (e.phase !== "Offseason" && e.phase !== "Regular season") || h || p.status !== "Available",
-                            onClick: () => {
-                              a({ type: "walkon", id: p.id });
-                            },
-                            children: "Invite \xB7 $0 NIL",
-                          }),
-                        }),
-                      ],
-                    },
-                    p.id
-                  )
-                ),
-              }),
-            ],
-          }),
-          !y.length &&
-            (0, s.jsx)(yl, {
-              title: "No matching walk-ons",
-              body: "Change your filters or show players who have already made a decision.",
-            }),
-        ],
+            },
+            {
+              key: "ovr",
+              label: "RATING",
+              num: !0,
+              render: (p) =>
+                (0, s.jsxs)(s.Fragment, {
+                  children: [
+                    (0, s.jsx)("strong", { className: "rating-inline", children: p.ovr }),
+                    p.ovr >= 60 && (0, s.jsx)("span", { className: "table-sub orange-text", children: "RARE FIND" }),
+                  ],
+                }),
+            },
+            { key: "acc", label: "ACCEPTANCE", num: !0, get: (p) => fl(e, p), render: (p) => (0, s.jsx)(RtBar, { value: fl(e, p), label: "Chance he accepts" }) },
+            { key: "nil", label: "NIL", num: !0, sort: !1, render: () => "$0" },
+            { key: "height", label: "HEIGHT / AGE", get: (p) => p.height, render: (p) => `${qs(p.height)} \xB7 ${p.age}` },
+            {
+              key: "status",
+              label: "STATUS",
+              render: (p) => (0, s.jsx)(he, { tone: p.status === "Signed" ? "green" : "", children: p.status === "Signed" ? "Committed" : p.status }),
+            },
+            {
+              key: "act",
+              label: "",
+              sort: !1,
+              render: (p) =>
+                (0, s.jsx)(X, {
+                  small: !0,
+                  disabled: (e.phase !== "Offseason" && e.phase !== "Regular season") || h || p.status !== "Available",
+                  onClick: () => {
+                    a({ type: "walkon", id: p.id });
+                  },
+                  children: "Invite \xB7 $0 NIL",
+                }),
+            },
+          ],
+        }),
       }),
       (0, s.jsx)("p", {
         className: "footnote",
