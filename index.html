@@ -1197,6 +1197,12 @@ button.hq-chip:hover{filter:brightness(1.25)}
 .asst-news{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 
 .lk-team:focus-visible,.lk-player:focus-visible{outline:2px solid var(--ds-accent,#ffd486);outline-offset:2px;border-radius:3px}
+
+/* Coaching > Minutes: the Star button, and the history scope switch */
+.star-minutes{margin:4px 0 0;font-size:.72rem;padding:2px 8px;border-radius:999px;border:1px solid var(--ds-border,#ffffff2e);background:transparent;color:var(--ds-text-muted,#9fb3c8);cursor:pointer}
+.star-minutes.on{background:#ffb34726;border-color:#ffb347;color:#ffd486;font-weight:700}
+.star-minutes:hover{border-color:#ffb347;color:#ffd486}
+.scope-chips{margin-right:12px}
 </style></head><body><div id="root"><div style="font-family:Arial;color:#f1f2f5;background:#0d1016;min-height:100vh;display:grid;place-content:center;text-align:center"><h1>COLLEGE DYNASTY</h1><div class="boot-spin" aria-hidden="true"></div><p role="status">Opening your desktop game…</p><noscript>Enable JavaScript in your browser to play.</noscript></div></div><script>/* phone / home-screen app: only on the website (the desktop app and a file opened from disk skip this) */
 if(/^https?:$/.test(location.protocol)){var m=document.createElement("link");m.rel="manifest";m.href="manifest.webmanifest";document.head.appendChild(m);if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 /* touch screens have no mouse hover: tapping something that has a hover hint shows the hint for a moment */
@@ -2538,7 +2544,8 @@ function Vf(e) {
         1,
         PH[a % PH.length]
       );
-    (t === "Transfer" && o.year >= 4 && (o.ask = Math.round((o.ask * 0.75) / 1e3) * 1e3),
+    (t === "Transfer" && TUNE.portalStar && ((o.sg = o.stars), (o.stars = o.hsStars = starRate(o, !0))),
+      t === "Transfer" && o.year >= 4 && (o.ask = Math.round((o.ask * 0.75) / 1e3) * 1e3),
       t === "Transfer" &&
       (o.history = [
         {
@@ -2640,6 +2647,7 @@ function qf(e, a) {
 var MINP = {
   Balanced: { s: 28, b: 12, n: 4, note: "The normal rotation: starters play about 30 minutes, four bench players share the rest." },
   Starters: { s: 34, b: 10, n: 3, note: "Ride your starting five for about 34 minutes each, with a short three-man bench." },
+  "Star player": { s: 27, b: 11, n: 4, x: 11, top: 1, note: "One star plays about 38 minutes. Pick him with the Star button in the minutes table; otherwise your best player is the star. Everyone else fills in around him." },
   Stars: { s: 27, b: 10, n: 4, x: 8, note: "Your three best players play about 35 minutes. Everyone else fills in around them." },
   "Deep bench": { s: 24, b: 16, n: 5, note: "A ten-man rotation. Fresher legs and more players happy with their minutes." },
   Development: { s: 26, b: 13, n: 4, note: "Young players with high potential get extra minutes so they grow faster." },
@@ -2691,11 +2699,13 @@ function Hs(e, keep) {
   });
   let n = e.lineup.map((d) => e.roster.find((f) => f.id === d)).filter((d) => o.includes(d)),
     i = [...n, ...r.slice(0, Q.n)],
-    st = Q.x ? new Set([...i].sort((d, f) => f.ovr - d.ovr).slice(0, 3)) : new Set(),
+    st = Q.x
+      ? new Set(P === "Star player" && i.some((f) => f.id === e.starId) ? i.filter((f) => f.id === e.starId) : [...i].sort((d, f) => f.ovr - d.ovr).slice(0, Q.top || 3))
+      : new Set(),
     // how much a player deserves the next minute (Balanced uses the original formula)
     kf = (y) =>
       (qf(y, y.pos) + y.attrs[15] * 0.08) *
-      (P === "Stars" ? Math.pow(y.ovr / 70, 4) : P === "Development" ? 1 + yb(y) / 25 : 1);
+      (P === "Stars" || P === "Star player" ? Math.pow(y.ovr / 70, 4) : P === "Development" ? 1 + yb(y) / 25 : 1);
   if (i.length >= 5) {
     let d = 0;
     for (let f of i) ((f.minutes = (n.includes(f) ? Q.s : Q.b) + (st.has(f) ? Q.x : 0)), (d += f.minutes));
@@ -2868,8 +2878,8 @@ function sy(e, a, t, l = Date.now()) {
 
 function Nn(e, a, t, l) {
   let u = le(t / Math.max(1e3, a.ask), 0, 2.5),
-    o = wt(l) - wt(a.stars >= 4 ? "Starter" : a.stars >= 2 ? "Rotation" : "Bench"),
-    r = Math.max(0, a.stars * 12 - e.rep) * 0.62 + [0, 2, 5, 9, 14, 20][a.stars];
+    o = wt(l) - wt((a.sg ?? a.stars) >= 4 ? "Starter" : (a.sg ?? a.stars) >= 2 ? "Rotation" : "Bench"),
+    r = Math.max(0, (a.sg ?? a.stars) * 12 - e.rep) * 0.62 + [0, 2, 5, 9, 14, 20][a.sg ?? a.stars];
   return Math.round(
     le(
       a.interest * 0.45 +
@@ -3044,7 +3054,9 @@ function ry(e, a, t) {
 // netCn: bonus for each team a conference has above 10 (bigger leagues send more teams);
 // netW / netR: weight of win % and of team rating in W_net; netSos / netCs / netQ1 / netQ2: how much the tournament ranking (W_net) credits a hard schedule, a strong conference, and wins over the top (Q1) and next (Q2) quadrant
 // tend: 1 = player tendencies change who shoots/passes/rebounds/steals in ny; 0 = off (the old engine)
-var TUNE = { leagueBoost: 2.9, autoDepth: 1, depthReserve: 7000, autoBest: 1, arPot: 0.1, arNeed: 0.5, arLams: [0, 1, 2, 4, 8, 16, 32, 64], spBoost: [1.55, 1.38, 1.24, 1.13, 1.06], spPen: [0.02, 0.015, 0.01, 0.006, 0.003], u: 1, f: 0.003, o2: 0.505, o3: 0.335, d2: 0.505, d3: 0.335, sk: 0.0008, b: 0.2, tend: 1, portal: 1.5, portalShow: 170, withdraw: 0.05, pvisits: 3, ovisits: 5, ovBonus: 8, foulOut: 5, sf: 0.11, nf: 0.216, bonus1: 7, bonus2: 10, timeouts: 4, toRun: 4, toBoost: 0.012, toCarry: 3, toLate: 180, shotClock: 30, heat: 0.07, mom: 0.04, scShift: 0.03, closeSecs: 240, blowSecs: 430, hackSecs: 50, pollStep: 0.3, stagger: 1, winNow: 0.35, rivalry: 0.85, netCr: 60, netCn: 9, netW: 65, netR: 0.45, netSos: 0.5, netCs: 0.45, netQ1: 2, netQ2: 0.6 };
+// portalStar: overall points a transfer needs over a high-school player for the same star level (portal stars are given on current play, not projection)
+// programScope: 1 = season records carry their school (Career history can show the current program only); 0 keeps the original records (legacy tests)
+var TUNE = { portalStar: 2.5, programScope: 1, leagueBoost: 2.9, autoDepth: 1, depthReserve: 7000, autoBest: 1, arPot: 0.1, arNeed: 0.5, arLams: [0, 1, 2, 4, 8, 16, 32, 64], spBoost: [1.55, 1.38, 1.24, 1.13, 1.06], spPen: [0.02, 0.015, 0.01, 0.006, 0.003], u: 1, f: 0.003, o2: 0.505, o3: 0.335, d2: 0.505, d3: 0.335, sk: 0.0008, b: 0.2, tend: 1, portal: 1.5, portalShow: 170, withdraw: 0.05, pvisits: 3, ovisits: 5, ovBonus: 8, foulOut: 5, sf: 0.11, nf: 0.216, bonus1: 7, bonus2: 10, timeouts: 4, toRun: 4, toBoost: 0.012, toCarry: 3, toLate: 180, shotClock: 30, heat: 0.07, mom: 0.04, scShift: 0.03, closeSecs: 240, blowSecs: 430, hackSecs: 50, pollStep: 0.3, stagger: 1, winNow: 0.35, rivalry: 0.85, netCr: 60, netCn: 9, netW: 65, netR: 0.45, netSos: 0.5, netCs: 0.45, netQ1: 2, netQ2: 0.6 };
 
 function ny(e, a, op) {
   let t = uy(e),
@@ -3721,7 +3733,9 @@ function starsOf(o) {
 // Star rating from the whole player: overall, how much room he has to grow (potential), size for his position,
 // athleticism (speed, strength, vertical, stamina) and, if he has played, production. Each part is a small nudge
 // around his overall, so the number of players at each star level stays about the same as before.
-function starRate(p) {
+// portal = a transfer entrant. Stars for the portal are given on his current play, not on projection, so a transfer needs a few more points of overall
+// than a high-school player for the same star level (TUNE.portalStar). Most portal players are therefore better than high-school players of the same class.
+function starRate(p, portal) {
   let c = (v, lo, hi) => Math.max(lo, Math.min(hi, v)),
     at = p.attrs,
     size = c((p.height - [73, 76, 79, 81, 83][Math.max(0, Le.indexOf(p.pos))]) * 0.6, -2, 2),
@@ -3732,7 +3746,7 @@ function starRate(p) {
       last && last.gp >= 5
         ? c(((last.pts + last.reb + last.ast + (last.stl || 0) + (last.blk || 0)) / last.gp - 14) * 0.15, -2.5, 2.5)
         : 0;
-  return starsOf(p.ovr + size + ath + pot + prod);
+  return starsOf(p.ovr + size + ath + pot + prod - (portal && typeof TUNE !== "undefined" ? TUNE.portalStar || 0 : 0));
 }
 function apr(e) {
   let n = e.roster.filter((t) => !t.redshirt),
@@ -4964,7 +4978,7 @@ function W_dest(e, p) {
     rk = [...e.opponents].sort(
       (a, b) => (b.pr == null ? 50 : b.pr) + b.rating * 0.4 - ((a.pr == null ? 50 : a.pr) + a.rating * 0.4)
     ),
-    top = Math.min(n, [170, 140, 110, 70, 45, 30][p.stars || 0]),
+    top = Math.min(n, [170, 140, 110, 70, 45, 30][(p.sg ?? p.stars) || 0]),
     h = TS(p.id + e.year);
   return rk[h % top];
 }
@@ -5583,7 +5597,7 @@ function W_off(e, bd) {
       (q.status === "Committed elsewhere" && q.committedTo && !q.landed)
   )) {
     if (p.status === "Signed") continue;
-    let t = (p.committedTo && byName[p.committedTo]) || (p.stars >= 2 ? W_dest(e, p) : null);
+    let t = (p.committedTo && byName[p.committedTo]) || ((p.sg ?? p.stars) >= 2 ? W_dest(e, p) : null);
     t &&
       ro[t.id] &&
       ro[t.id].push({
@@ -5722,7 +5736,8 @@ function W_mkp(e, p, t) {
           },
         },
       ]),
-      (q.stars = starRate(q)),
+      TUNE.portalStar && (q.sg = starRate(q)),
+      (q.stars = starRate(q, !0)),
       (q.hsStars = q.stars));
     return q;
   }
@@ -5980,7 +5995,7 @@ function rivalsOf(e, p) {
   let h = TS(p.id + e.year),
     n = e.opponents.length,
     rk = [...e.opponents].sort((a, b) => b.rating - a.rating),
-    top = Math.min(n, [90, 80, 70, 55, 38, 24][p.stars || 0]),
+    top = Math.min(n, [90, 80, 70, 55, 38, 24][(p.sg ?? p.stars) || 0]),
     out = [];
   for (let k = 0; k < 3; k++) {
     h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
@@ -6001,7 +6016,7 @@ function W_rv(e, before) {
   for (let p of e.prospects) {
     if (p.status !== "Available") continue;
     ((p.rv = p.rv || rivalsOf(e, p)),
-      p.rv.forEach((r) => (r.s += j(e, 1, 4) + (p.stars >= 4 ? 1 : 0))),
+      p.rv.forEach((r) => (r.s += j(e, 1, 4) + ((p.sg ?? p.stars) >= 4 ? 1 : 0))),
       p.offer && !p.__ro && ((p.__ro = 1), ([...p.rv].sort((a, b) => b.s - a.s)[0].s += 5)),
       !p.offer && (p.__ro = 0));
     let me = Math.round(p.progress * 0.6 + p.interest * 0.4) + (p.offer ? 8 : 0),
@@ -6681,6 +6696,7 @@ function dy(e) {
     r = o ? `${o.name} \xB7 Team MVP` : "";
   (e.history.push({
     year: e.year,
+    ...(TUNE.programScope ? { sid: e.school.id, school: e.school.name } : {}),
     ...a,
     cw: t.wins,
     cl: t.losses,
@@ -7038,14 +7054,14 @@ function scoutFav(e) {
   let n = 0,
     fav = e.prospects
       .filter((p) => p.target && p.status === "Available" && p.scouted < (p.intl ? 1 : 2) && !hsLock(e, p))
-      .sort((p, q) => (p.rank || 9) - (q.rank || 9) || q.stars - p.stars || q.interest - p.interest);
+      .sort((p, q) => (p.rank || 9) - (q.rank || 9) || (q.sg ?? q.stars) - (p.sg ?? p.stars) || q.interest - p.interest);
   for (let p of fav)
     for (; e.scouts > 0 && p.scouted < (p.intl ? 1 : 2);)
       (p.scouted++, e.scouts--, n++, (p.progress = le(p.progress + 8, 0, 99)), (p.interest = le(p.interest + 3, 0, 99)));
   // item 5: official visits go to favorites you have made an offer to (best first), only when auto-scout is used
   let offered = e.prospects
     .filter((p) => p.target && p.offer && !p.fid && !p.ov && p.status === "Available" && !hsLock(e, p))
-    .sort((p, q) => (p.rank || 9) - (q.rank || 9) || q.stars - p.stars);
+    .sort((p, q) => (p.rank || 9) - (q.rank || 9) || (q.sg ?? q.stars) - (p.sg ?? p.stars));
   for (let p of offered) {
     if ((e.ov ?? TUNE.ovisits) < 1) break;
     ((e.ov = (e.ov ?? TUNE.ovisits) - 1), (p.ov = 1), (p.scouted = p.intl ? Math.max(p.scouted, 1) : 2));
@@ -7282,6 +7298,15 @@ function fy(e, a) {
       ((e.minPreset = a.value), Hs(e, !0));
       break;
     }
+    case "starPlayer": {
+      // make one player the star (about 38 minutes, the rest fill in around him); pressing his button again goes back to the balanced plan
+      let t = Ba(e, a.id);
+      if (t.redshirt) throw new Error("Activate this player before making him your star.");
+      if (e.minPreset === "Star player" && e.starId === t.id) ((e.minPreset = "Balanced"), delete e.starId);
+      else ((e.starId = t.id), (e.minPreset = "Star player"));
+      Hs(e, !0);
+      break;
+    }
     case "minutes": {
       let t = Ba(e, a.id);
       if (t.redshirt) throw new Error("Activate this player before assigning minutes.");
@@ -7481,6 +7506,9 @@ function fy(e, a) {
         }))),
         (e.skills = keep.skills),
         (e.earn = keep.earn),
+        // the new program starts its own history; its last season is the record it had when you took the job
+        (e.jobYear = e.year),
+        (e.prevRec = { wins: t.wins, losses: Math.max(0, 30 - t.wins), school: t.name, year: e.year - 1, est: !0 }),
         (e.contract = W_newContract(e, e.baseBudget, keep.rep, 4)),
         Be(
           e,
@@ -7869,7 +7897,9 @@ function fy(e, a) {
         throw new Error("This opponent is already contracted for a guarantee game.");
       let n = e.guaranteeIncome - (e.nc[t].guarantee || 0) + r,
         i = e.baseBudget + n;
-      if (i < go(e) + kt(e))
+      // Only a change that lowers guarantee income can break a commitment. A team in debt may still move games around, drop a home game for
+      // another, or add a guarantee game (which brings money in).
+      if (n < e.guaranteeIncome && i < go(e) + kt(e))
         throw new Error(
           "That guarantee money is already committed. Withdraw offers before reducing schedule income."
         );
@@ -8048,7 +8078,7 @@ function my(e) {
         }
       } else
         e.round <= 8 &&
-          ne(e) < [0.05, 0.06, 0.07, 0.09, 0.19, 0.25][a.stars] + e.round * 0.004 &&
+          ne(e) < [0.05, 0.06, 0.07, 0.09, 0.19, 0.25][a.sg ?? a.stars] + e.round * 0.004 &&
           ((a.status = "Committed elsewhere"),
           (a.progress = 100),
           (a.decisionRound = e.round),
@@ -8513,6 +8543,7 @@ var Gn =
     ih: x.any().optional(),
     dlog: x.any().optional(),
     hsStars: A.optional(),
+    sg: A.optional(),
     pers: x.string().optional(),
     home: A.optional(),
     prefs: x.any().optional(),
@@ -8633,6 +8664,9 @@ var Gn =
     h2h: x.any().optional(),
     diff: x.string().optional(),
     minPreset: x.string().optional(),
+    starId: x.string().optional(),
+    prevRec: x.any().optional(),
+    jobYear: x.number().optional(),
     recs: x.any().optional(),
     confs: x.any().optional(),
     confNames: x.any().optional(),
@@ -8733,6 +8767,8 @@ var Gn =
     history: x.array(
       x.object({
         year: A,
+        sid: x.string().optional(),
+        school: x.string().optional(),
         wins: A,
         losses: A,
         cw: A,
@@ -10338,7 +10374,7 @@ function applyCfg() {
   ));
 
 // Filled in by tools/build.js: which build this is, and the "What's new" digest of the instruction log (item 32).
-var BUILD_INFO = {"version":"V13","build":204,"commit":"7955628","dirty":false,"date":"2026-10-08T00:13:31.966Z"},
+var BUILD_INFO = {"version":"V13","build":205,"commit":"b2d1506","dirty":false,"date":"2026-10-09T03:23:45.886Z"},
   WHATS_NEW = [{"id":"0036","date":"2026-10-06","title":"The left sidebar must never need scrolling.","text":"The left sidebar now fits with no scroll bar and nothing cut off at all seven window sizes you listed. All the checks pass, and the work is committed (not pushed)."},{"id":"0035","date":"2026-10-06","title":"Make the Former players tab show only","text":"The Former players tab now shows only the players you've favorited, and you can favorite from the new overlay. Everything I ran passes, and it's committed (not pushed)."},{"id":"0034","date":"2026-10-06","title":"Big update","text":"Items 1, 2 and 3 are done, and each has its own commit. No game rules, saves or numbers were touched. For each item I ran npm test, the quick screen test (135 steps, 0 failed) and the strict no-sideways-scrolling test. All passed at 390, 1000, 1100, 1280 and 1440 wide. I also looked at a desktop screenshot of Program…"},{"id":"0033","date":"2026-10-06","title":"Finish three tuning gaps that are still","text":"I finished the work and committed it (not pushed). The small-budget tournament rate is fixed and fewer coaches get fired. The season-5 dip shrank by half but does not meet the target in the low-budget levels."},{"id":"0032","date":"2026-10-06","title":"Big update","text":"Items 1 to 4 are done and committed, one commit each, nothing pushed. Items 2 and 4 are only partly done, and items 1 and 3 have gaps too. They are listed below."},{"id":"0031","date":"2026-10-05","title":"1. Auto-recruit should chase the best players,","text":"Both runs are going; I'll check them when they finish."},{"id":"0030","date":"2026-10-05","title":"Absolutely no sideways scrolling anywhere, and no","text":"At 1000, 1100, 1280 and 1440 wide, nothing scrolls sideways or is cut off, no table column is hidden, and only the page scrolls up and down. All tests pass, and the change is committed but not pushed."},{"id":"0029","date":"2026-10-05","title":"Two screen fixes, done together. 1. Put","text":"Both screen fixes are done and committed (fb99ea4, not pushed). The new overflow check passes: no screen scrolls sideways at 1100, 1280 or 1440 wide, so no table needed an exception."},{"id":"0027","date":"2026-10-05","title":"Big update","text":"Stage 1 is finished. I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\" (commit 0b71168). I changed no game code and pushed nothing. The commit also picked up tools/prompts/edit-0027-big-update-s1.txt, which was sitting uncommitted in the project folder."},{"id":"0025","date":"2026-10-05","title":"Big update: items 12, 15, 16, 22, 31, 33, 34, 53, 55","text":"Stage 1 is finished: I measured the game as it stands, wrote the numbers into CLAUDE.md under \"Baselines\", and committed it as \"Baseline\". I changed no game code and did not push. The commit also picked up the claude-log and prompt files that were already waiting."},{"id":"0024","date":"2026-10-05","title":"Big update: items 8, 9, 10, 11, 47, 50, 51, 54","text":"The baseline is recorded and saved as one commit called \"Baseline\" (ce627d2). I changed no game code, and nothing was pushed. The \"Baselines\" section of CLAUDE.md now has a full and a quick baseline, and the old ones are still there. The commit also picked up the log files that were already waiting in the folder."},{"id":"0023","date":"2026-10-04","title":"Big update: items 37, 38, 39, 40, 41, 42, 43, 44, 45","text":"I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\". I changed no game code, and nothing was pushed. The numbers come from commit 7cffff8, the code as it stood before this stage."},{"id":"0022","date":"2026-10-04","title":"Big update: items 26, 27, 28, 29, 30","text":"Both baselines are measured, written into CLAUDE.md under \"Baselines\" and committed as \"Baseline\". I didn't change any game code, and nothing was pushed."},{"id":"0021","date":"2026-10-04","title":"Big update: items 17, 18, 19, 21, 32, 35, 36, 52","text":"All five items are done and committed one by one (17, 18, 19, 21, 32), and nothing was pushed. None of them touched how games play. After each one npm test passed, including the draft shares, and I ran the screen tests for the ones that changed screens."},{"id":"0020","date":"2026-10-04","title":"Big update: items 14, 20, 48, 49","text":"All four items are done and committed, one commit each (14, 20, 48, 49). Nothing was pushed. After each one npm test passed. The three that change a screen also passed the quick screen test (101 checks, none failed)."},{"id":"0018","date":"2026-10-04","title":"Confrence and Schedule ranking boost","text":"Schedule strength and conference strength now count a bit more in the national rankings. The build and npm test pass, and the change is committed but not pushed."},{"id":"0017","date":"2026-10-04","title":"Big update 1","text":"All seven changes are in and committed (nothing pushed). The build, npm test and the screen test (186 steps) all pass, and the game-numbers test shows no change to how games play. Two of the fixes are checked with real player and school data; the draft-keep and rankings changes are only partly checked (see the end)."},{"id":"0016","date":"2026-10-04","title":"asking price displayed my recruits","text":"Your players' cards now show an \"Asking\" amount under the NIL line, so you can see what each one wants next to what you pay. I haven't looked at the cards on screen, so I haven't seen how it fits."},{"id":"0015","date":"2026-10-04","title":"phone","text":"The game now works on a 390-pixel-wide phone screen, it's easy to tap, and it can be installed as a home-screen app that works without internet. Every check passed. Nothing has been sent to GitHub or the public website yet."},{"id":"0014","date":"2026-10-03","title":"confrence ranking/top 25","text":"The Top 25 now lives in League news, and League news has a new Conference ranking tab. The game builds, npm test passes, and the click-through screen test passed all 186 steps."},{"id":"0013","date":"2026-10-03","title":"Put the confrence under team names in","text":"On the start page, each school card now shows its conference on a line right under the team name (for example, \"Gulf Conference\" under \"Delta State Tech\"). It's committed and not pushed."},{"id":"0012","date":"2026-10-03","title":"scratch all of this 5 years before","text":"Poor schools now have low expectations and a long grace period, and rich schools have high expectations and a short one. Schools are labeled by budget, not \"Easy\" or \"Hard\". I rebuilt the game, committed the change and did not push."},{"id":"0011","date":"2026-10-03","title":"Reverse the difficuly things and put the","text":"The difficulty is now reversed: rich, strong schools are Easy and poor, weak schools are Brutal. The start page lists schools from richest to poorest. The build, npm test and npm run test:ui all pass. The balance test now flags every tier, because its targets were written for the old direction."},{"id":"0010","date":"2026-10-03","title":"Let player go fix","text":"I couldn't reproduce the break, so I only fixed a wrong message on that screen. If you still see the problem, I need to know exactly what happened."},{"id":"0009","date":"2026-10-03","title":"Tab in league news with the top 50 players","text":"League News now has a \"Top 50\" tab. It's built, tested and committed, and I didn't push."},{"id":"0008","date":"2026-10-03","title":"pictures on my recruit recruit pages are","text":"The recruit picture is fixed: it now shows the whole head and shoulders instead of a zoomed-in crop. I checked this in a screenshot of a recruit's page."},{"id":"0007","date":"2026-10-03","title":"Suggested Edits","text":"That notice only confirms the balance runs ended. I'd already read their results and finished the work, so nothing changes."},{"id":"0006","date":"2026-10-03","title":"start new career option","text":"There's now a Start a new career button on the screen that says the saved career could not be opened."},{"id":"0005","date":"2026-10-03","title":"v13","text":"All 19 requests are done and saved as one commit on this computer. Nothing has been pushed to GitHub."},{"id":"0004","date":"2026-10-03","title":"Task 4: asking prices, long careers, season UI checks","text":"All four parts are done and committed as 29f99a0 (not pushed). The one target not quite met: the Hard tier has 44% of long careers fired against \"about 40%\"."},{"id":"0003","date":"2026-10-03","title":"Task 3: UI click-through test and multi-season money test","text":"I added both tests and ran them. Together they found one real bug, which I fixed. Final results: - npm run test:ui: 167 of 167 steps pass. - npm run test:nil: no CHECK flags. - npm test: all checks pass. - npm run test:realism: every row is still PASS, with the same numbers as before (the fix only touched the screen,…"},{"id":"0002","date":"2026-10-03","title":"Task 2: fix rebounds, blocks and other-team noise","text":"All realism rows now pass, balance is still in range, and npm test passes. The changes are committed (not pushed)."},{"id":"0001","date":"2026-10-03","title":"Task 1: add realism and balance measurement tests","text":"The balance run has started (30 schools, 3 seasons, 5 Chrome workers). I'll get a notification when it finishes."},{"id":"0000","date":"2026-10-03","title":"First look: check the build and plan the fixes (read-only)","text":"The game has been split into src/. The user asked me to confirm it builds and that npm test passes, then list the open issues from CLAUDE.md and propose an order to fix them. No files were to be changed."}];
 
 function DiagPanel({ g: e }) {
@@ -12153,7 +12189,7 @@ function oc() {
                                 children: [
                                   (0, s.jsx)("small", { children: e.phase === "Offseason" ? "LAST" : "REC" }),
                                   (() => {
-                                    const rc2 = e.phase === "Offseason" ? e.history.at(-1) : dl(e);
+                                    const rc2 = e.phase === "Offseason" ? W_lastRecord(e) : dl(e);
                                     return rc2 ? `${rc2.wins}\u2013${rc2.losses}` : "\u2013";
                                   })(),
                                 ],
@@ -14489,7 +14525,7 @@ function ZC({
                 ],
               }),
               (() => {
-                const hr = e.phase === "Offseason" ? e.history.at(-1) : o;
+                const hr = e.phase === "Offseason" ? W_lastRecord(e) : o;
                 return (
                   hr &&
                   (0, s.jsxs)("div", {
@@ -14619,9 +14655,10 @@ function ZC({
             label: e.phase === "Offseason" ? "LAST SEASON" : "OVERALL RECORD",
             value:
               e.phase === "Offseason"
-                ? e.history.length
-                  ? `${e.history.at(-1).wins}\u2013${e.history.at(-1).losses}`
-                  : `${e.school.wins}\u2013${30 - e.school.wins}`
+                ? (() => {
+                    const lr = W_lastRecord(e);
+                    return lr ? `${lr.wins}\u2013${lr.losses}` : `${e.school.wins}\u2013${30 - e.school.wins}`;
+                  })()
                 : `${o.wins}\u2013${o.losses}`,
             note: `Goal: ${_s(e)} wins${{ delta: " or real player growth", lake: " or real player growth", mesa: " or a conference title", coastal: " or a conference title", mission: " or a conference title", metro: " or a conference title", cascadia: " or a tournament trip", peachtree: " or a tournament trip", capital: " or a tournament trip", lone: " or a tournament trip" }[e.school.id] || ""} \xB7 ${jobStatus(e)}`,
             icon: (0, s.jsx)(ba, {}),
@@ -16129,7 +16166,7 @@ function W_advPlayers(e) {
       tot = ADV_MIN.slice(0, R.length).reduce((x, y) => x + y, 0),
       tAst = R.reduce((x, p) => x + p.s.a, 0);
     R.forEach((p, i) =>
-      mk(p.i, t.name, p.n, p.p, p.s.g, (ADV_MIN[i] * 200) / tot, p.s.p, p.s.r, p.s.a, p.s.s, p.s.b, T.pf || 0, tAst, {})
+      mk(p.i, t.name, p.n, p.p, p.s.g, (ADV_MIN[i] * 200) / tot, p.s.p, p.s.r, p.s.a, p.s.s, p.s.b, T.pf || 0, tAst, { ovr: p.o })
     );
   }
   let tAst = e.roster.reduce((x, p) => x + p.stats.ast, 0);
@@ -16137,6 +16174,7 @@ function W_advPlayers(e) {
     let s0 = p.stats;
     mk(p.id, e.school.name, p.name, p.pos, s0.gp, s0.gp ? s0.min / s0.gp : 0, s0.pts, s0.reb, s0.ast, s0.stl, s0.blk, mine.pf || 0, tAst, {
       you: !0,
+      ovr: p.ovr,
       ts: s0.fga + s0.fta ? s0.pts / (2 * (s0.fga + 0.44 * s0.fta)) : 0,
     });
   }
@@ -16184,22 +16222,22 @@ function AdvStatsPanel({ g: e }) {
         v === "Players" &&
           (pl.length
             ? table(
-                ["#", "PLAYER", "TEAM", "POS", "G", "MIN", "PTS", "REB", "AST", "USAGE", "IMPACT/40"],
+                ["#", "PLAYER", "TEAM", "POS", "OVR", "G", "MIN", "PTS", "REB", "AST", "USAGE", "IMPACT/40"],
                 pl.slice(0, 50).map((p, i) => ({
                   you: p.you,
-                  c: [i + 1, p.name, p.team, p.pos, p.g, Math.round(p.min), f1(p.ppg), f1(p.rpg), f1(p.apg), f1(p.usg) + "%", f1(p.imp)],
+                  c: [i + 1, p.name, p.team, p.pos, p.ovr, p.g, Math.round(p.min), f1(p.ppg), f1(p.rpg), f1(p.apg), f1(p.usg) + "%", f1(p.imp)],
                 }))
               )
             : (0, s.jsx)("p", { className: "muted", children: "Play some games first: player ratings need at least 6 games." })),
         v === "Your players" &&
           (pl.some((p) => p.you)
             ? table(
-                ["PLAYER", "POS", "G", "MIN", "PTS", "REB", "AST", "TS%", "USAGE", "IMPACT/40", "NATIONAL RANK"],
+                ["PLAYER", "POS", "OVR", "G", "MIN", "PTS", "REB", "AST", "TS%", "USAGE", "IMPACT/40", "NATIONAL RANK"],
                 pl
                   .map((p, i) => ({ p, i }))
                   .filter((z) => z.p.you)
                   .map(({ p, i }) => ({
-                    c: [p.name, p.pos, p.g, f1(p.min), f1(p.ppg), f1(p.rpg), f1(p.apg), Math.round(p.ts * 100) + "%", f1(p.usg) + "%", f1(p.imp), "#" + (i + 1)],
+                    c: [p.name, p.pos, p.ovr, p.g, f1(p.min), f1(p.ppg), f1(p.rpg), f1(p.apg), Math.round(p.ts * 100) + "%", f1(p.usg) + "%", f1(p.imp), "#" + (i + 1)],
                   }))
               )
             : (0, s.jsx)("p", { className: "muted", children: "Play some games first: player ratings need at least 6 games." })),
@@ -18442,6 +18480,7 @@ function KC({ g: e, run: a, select: t }) {
     [tab, setTab] = (0, N.useState)("Lineup & tactics"),
     [, rr] = (0, N.useState)(0),
     mp = MINP[e.minPreset] ? e.minPreset : "Balanced",
+    starNow = mp === "Star player" ? (e.roster.find((z) => z.id === e.starId && !z.redshirt) || [...e.roster].filter((z) => !z.redshirt && !z.injury).sort((x1, x2) => x2.ovr - x1.ovr)[0])?.id : null,
     fit = W_fit(e).s,
     hurt = e.roster.filter((r) => r.injury > 0 && !r.redshirt),
     // minutes plan picker plus the "always auto-set" switch (shared by both tabs)
@@ -18475,7 +18514,7 @@ function KC({ g: e, run: a, select: t }) {
               value: mp,
               onChange: (z) => a({ type: "minPreset", value: z.target.value }),
               children: Object.keys(MINP).map((d) =>
-                (0, s.jsx)("option", { value: d, children: d === "Stars" ? "Star players" : d }, d)
+                (0, s.jsx)("option", { value: d, children: d === "Stars" ? "Top three" : d }, d)
               ),
             })
           : (0, s.jsx)("div", {
@@ -18491,7 +18530,7 @@ function KC({ g: e, run: a, select: t }) {
                     className: "plan-card" + (d === mp ? " active" : ""),
                     onClick: () => a({ type: "minPreset", value: d }),
                     children: [
-                      (0, s.jsx)("strong", { children: d === "Stars" ? "Star players" : d }),
+                      (0, s.jsx)("strong", { children: d === "Stars" ? "Top three" : d }),
                       (0, s.jsx)("span", { children: MINP[d].note }),
                     ],
                   },
@@ -18887,6 +18926,14 @@ function KC({ g: e, run: a, select: t }) {
                             (0, s.jsxs)("td", {
                               children: [
                                 (0, s.jsx)(WC, { p: r, run: a }, `${r.id}-${r.minutes}`),
+                                !r.redshirt &&
+                                  (0, s.jsx)("button", {
+                                    className: "star-minutes" + (starNow === r.id ? " on" : ""),
+                                    "aria-pressed": starNow === r.id,
+                                    title: starNow === r.id ? "He is your star (about 38 minutes). Press again to go back to the balanced plan." : "Make him your star: about 38 minutes, the others fill in around him.",
+                                    onClick: () => a({ type: "starPlayer", id: r.id }),
+                                    children: starNow === r.id ? "\u2605 Star" : "\u2606 Star",
+                                  }),
                                 (0, s.jsx)("span", {
                                   className: "min-bar",
                                   role: "img",
@@ -20131,6 +20178,31 @@ function e0B({ g: e, select: a }) {
   });
 }
 
+// Which seasons belong to the program you coach now. A job change keeps the coaching history (e.history) but starts a new program, so Career history can show
+// "Current program" or "All time", and the "last season" record in the header is the program's own, not the school you left.
+// Season records carry the school id (sid) and name (school) from now on. Older saves are inferred: seasons from the year of the last job change on
+// belong to this program (e.jobYear, or the "New job" news item when the save has no jobYear).
+function W_jobStartYear(e) {
+  if (typeof e.jobYear === "number") return e.jobYear;
+  const jobs = (e.news || []).filter((n) => n.title === "New job");
+  return jobs.length ? Math.max(...jobs.map((n) => n.year)) : -Infinity;
+}
+function W_progHist(e) {
+  const from = W_jobStartYear(e);
+  return e.history.filter((h) => (h.sid ? h.sid === e.school.id : h.year >= from));
+}
+function W_hasOtherProgram(e) {
+  return W_progHist(e).length < e.history.length;
+}
+// last season's record of THIS program: its own last season; or, before it has played one, the record it had when you took the job
+function W_lastRecord(e) {
+  const mine = W_progHist(e);
+  if (mine.length) return mine.at(-1);
+  if (W_hasOtherProgram(e)) return e.prevRec || { wins: e.school.wins, losses: Math.max(0, 30 - e.school.wins), est: true };
+  return e.history.at(-1) || null;
+}
+window.__dbg && Object.assign(window.__dbg, { W_lastRecord, W_progHist, W_hasOtherProgram });
+
 // A table wrapper that shows a second scroll bar ABOVE the table, but only when the table is wider than its box (so a stat would be cut off).
 function TopScroll({ children: kids }) {
   const wrap = (0, N.useRef)(null), top = (0, N.useRef)(null), [w, setW] = (0, N.useState)(0), [over, setOver] = (0, N.useState)(!1);
@@ -20739,12 +20811,27 @@ function TeamHistory({ g: e, part: part }) {
 }
 
 function a0({ g: e, run: run }) {
-  let [t, l] = (0, N.useState)("Seasons");
+  let [t, l] = (0, N.useState)("Seasons"),
+    other = W_hasOtherProgram(e),
+    [sc, setSc] = (0, N.useState)("Current program"),
+    cur = other && sc === "Current program",
+    eg = cur ? { ...e, history: W_progHist(e), scopeLabel: "PROGRAM RECORD" } : e;
   return (0, s.jsxs)(s.Fragment, {
     children: [
-      (0, s.jsx)("div", {
+      (0, s.jsxs)("div", {
         className: "toolbar",
-        children: (0, s.jsx)("div", {
+        children: [
+          other &&
+            (0, s.jsx)("div", {
+              className: "chips scope-chips",
+              role: "group",
+              "aria-label": "History scope",
+              title: "You have coached at more than one school. Current program shows only your seasons at this school; All time shows your whole coaching career.",
+              children: ["Current program", "All time"].map((d) =>
+                (0, s.jsx)("button", { className: d === sc ? "active" : "", onClick: () => setSc(d), children: d }, d)
+              ),
+            }),
+          (0, s.jsx)("div", {
           className: "chips",
           children: [
             "Seasons",
@@ -20759,13 +20846,14 @@ function a0({ g: e, run: run }) {
             (0, s.jsx)("button", { className: d === t ? "active" : "", onClick: () => l(d), children: d }, d)
           ),
         }),
+        ],
       }),
       t === "Seasons"
-        ? (0, s.jsx)(a0S, { g: e })
+        ? (0, s.jsx)(a0S, { g: eg })
         : t === "Team history"
-          ? (0, s.jsx)(TeamHistory, { g: e })
+          ? (0, s.jsx)(TeamHistory, { g: eg })
           : t === "Leaders" || t === "Best seasons" || t === "Game records"
-            ? (0, s.jsx)(HistoryLeaders, { h: e.history, g: e, part: t })
+            ? (0, s.jsx)(HistoryLeaders, { h: eg.history, g: eg, part: t })
             : t === "Program honors"
               ? (0, s.jsx)(AlumniPanel, { g: e, part: "honors", run: run, key: "honors" })
               : t === "Favorite players"
@@ -20786,7 +20874,7 @@ function a0S({ g: e }) {
         className: "metrics three four",
         children: [
           (0, s.jsx)(ca, {
-            label: "CAREER RECORD",
+            label: e.scopeLabel || "CAREER RECORD",
             value: `${a}\u2013${t}`,
             note: `${e.history.length} completed seasons`,
             icon: (0, s.jsx)(At, {}),
@@ -20820,7 +20908,7 @@ function a0S({ g: e }) {
                 (0, s.jsx)(
                   qe,
                   {
-                    title: `${l.year}\u2013${String(l.year + 1).slice(2)} \xB7 ${l.wins}\u2013${l.losses}`,
+                    title: `${l.year}\u2013${String(l.year + 1).slice(2)} \xB7 ${l.wins}\u2013${l.losses}${!e.scopeLabel && l.school && l.school !== e.school.name ? " \xB7 " + l.school : ""}`,
                     meta: `${l.cw}\u2013${l.cl} conference \xB7 ${nitFinish(l) && !/^NIT/.test(l.result) ? nitFinish(l) : l.result}`,
                     action: (0, s.jsxs)(s.Fragment, {
                       children: [
