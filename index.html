@@ -1203,6 +1203,11 @@ button.hq-chip:hover{filter:brightness(1.25)}
 .star-minutes.on{background:#ffb34726;border-color:#ffb347;color:#ffd486;font-weight:700}
 .star-minutes:hover{border-color:#ffb347;color:#ffd486}
 .scope-chips{margin-right:12px}
+
+/* offense / defense / pace: kept as set by hand or automatic */
+.tactic-mode { display: block; margin-top: 2px; }
+.tactic-auto { background: none; border: 0; padding: 0; margin-left: 8px; font: inherit; text-decoration: underline; cursor: pointer; color: inherit; opacity: 0.85; }
+.tactic-auto:hover { opacity: 1; }
 </style></head><body><div id="root"><div style="font-family:Arial;color:#f1f2f5;background:#0d1016;min-height:100vh;display:grid;place-content:center;text-align:center"><h1>COLLEGE DYNASTY</h1><div class="boot-spin" aria-hidden="true"></div><p role="status">Opening your desktop game…</p><noscript>Enable JavaScript in your browser to play.</noscript></div></div><script>/* phone / home-screen app: only on the website (the desktop app and a file opened from disk skip this) */
 if(/^https?:$/.test(location.protocol)){var m=document.createElement("link");m.rel="manifest";m.href="manifest.webmanifest";document.head.appendChild(m);if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 /* touch screens have no mouse hover: tapping something that has a hover hint shows the hint for a moment */
@@ -2595,8 +2600,12 @@ function jf(e) {
       e.walkons.push(o));
   }
 }
+// Chance (percent) that a walk-on says yes. TUNE.walkonFloor (90) is the least any walk-on gives, rare 60+ ones included.
 function fl(e, a) {
-  return a.ovr >= 60 ? Math.round(le(28 + e.rep * 0.35, 28, 70)) : a.ovr >= 50 ? 85 : 98;
+  return Math.max(
+    a.ovr >= 60 ? Math.round(le(28 + e.rep * 0.35, 28, 70)) : a.ovr >= 50 ? 85 : 98,
+    TUNE.walkonFloor || 0
+  );
 }
 function Xa(e, a = "") {
   return (
@@ -2724,14 +2733,22 @@ function Hs(e, keep) {
     !d.redshirt && !e.lineup.includes(d.id) && (d.role = d.minutes > 8 ? "Rotation" : "Bench");
 }
 
-function oy(e) {
-  Hs(e);
+// Offense, defense and pace that the coach chose by hand are remembered in e.tacLock and are never changed by automatic coaching.
+function W_autoTactics(e) {
   let a = e.roster.filter((l) => l.minutes > 0),
-    t = (l) => a.reduce((u, o) => u + o.attrs[l] * o.minutes, 0) / 200;
-  ((e.tactics.offense = t(2) > t(0) + 3 ? "Perimeter" : t(0) > t(2) + 5 ? "Inside-out" : "Balanced"),
-    (e.tactics.defense =
-      t(7) > t(6) + 5 ? "2\u20133 zone" : t(8) > 72 && t(15) > 72 ? "Full-court press" : "Man-to-man"),
-    (e.tactics.pace = t(12) > 73 && t(15) > 72 ? "Fast" : t(12) < 55 ? "Slow" : "Balanced"));
+    t = (l) => a.reduce((u, o) => u + o.attrs[l] * o.minutes, 0) / 200,
+    k = e.tacLock || {};
+  (k.offense || (e.tactics.offense = t(2) > t(0) + 3 ? "Perimeter" : t(0) > t(2) + 5 ? "Inside-out" : "Balanced"),
+    k.defense ||
+      (e.tactics.defense =
+        t(7) > t(6) + 5 ? "2\u20133 zone" : t(8) > 72 && t(15) > 72 ? "Full-court press" : "Man-to-man"),
+    k.pace || (e.tactics.pace = t(12) > 73 && t(15) > 72 ? "Fast" : t(12) < 55 ? "Slow" : "Balanced"));
+}
+function W_keptTactics(e) {
+  return ["offense", "defense", "pace"].filter((k) => e.tacLock?.[k]);
+}
+function oy(e) {
+  (Hs(e), W_autoTactics(e));
 }
 
 function Zf(e) {
@@ -3056,7 +3073,8 @@ function ry(e, a, t) {
 // tend: 1 = player tendencies change who shoots/passes/rebounds/steals in ny; 0 = off (the old engine)
 // portalStar: overall points a transfer needs over a high-school player for the same star level (portal stars are given on current play, not projection)
 // programScope: 1 = season records carry their school (Career history can show the current program only); 0 keeps the original records (legacy tests)
-var TUNE = { portalStar: 2.5, programScope: 1, leagueBoost: 2.9, autoDepth: 1, depthReserve: 7000, autoBest: 1, arPot: 0.1, arNeed: 0.5, arLams: [0, 1, 2, 4, 8, 16, 32, 64], spBoost: [1.55, 1.38, 1.24, 1.13, 1.06], spPen: [0.02, 0.015, 0.01, 0.006, 0.003], u: 1, f: 0.003, o2: 0.505, o3: 0.335, d2: 0.505, d3: 0.335, sk: 0.0008, b: 0.2, tend: 1, portal: 1.5, portalShow: 170, withdraw: 0.05, pvisits: 3, ovisits: 5, ovBonus: 8, foulOut: 5, sf: 0.11, nf: 0.216, bonus1: 7, bonus2: 10, timeouts: 4, toRun: 4, toBoost: 0.012, toCarry: 3, toLate: 180, shotClock: 30, heat: 0.07, mom: 0.04, scShift: 0.03, closeSecs: 240, blowSecs: 430, hackSecs: 50, pollStep: 0.3, stagger: 1, winNow: 0.35, rivalry: 0.85, netCr: 60, netCn: 9, netW: 65, netR: 0.45, netSos: 0.5, netCs: 0.45, netQ1: 2, netQ2: 0.6 };
+// walkonFloor: the least chance (percent) any walk-on, rare ones included, has of saying yes to an invitation (0 = the original 28-70 for rare ones, 85 for 50-59)
+var TUNE = { portalStar: 2.5, programScope: 1, walkonFloor: 90, leagueBoost: 2.9, autoDepth: 1, depthReserve: 7000, autoBest: 1, arPot: 0.1, arNeed: 0.5, arLams: [0, 1, 2, 4, 8, 16, 32, 64], spBoost: [1.55, 1.38, 1.24, 1.13, 1.06], spPen: [0.02, 0.015, 0.01, 0.006, 0.003], u: 1, f: 0.003, o2: 0.505, o3: 0.335, d2: 0.505, d3: 0.335, sk: 0.0008, b: 0.2, tend: 1, portal: 1.5, portalShow: 170, withdraw: 0.05, pvisits: 3, ovisits: 5, ovBonus: 8, foulOut: 5, sf: 0.11, nf: 0.216, bonus1: 7, bonus2: 10, timeouts: 4, toRun: 4, toBoost: 0.012, toCarry: 3, toLate: 180, shotClock: 30, heat: 0.07, mom: 0.04, scShift: 0.03, closeSecs: 240, blowSecs: 430, hackSecs: 50, pollStep: 0.3, stagger: 1, winNow: 0.35, rivalry: 0.85, netCr: 60, netCn: 9, netW: 65, netR: 0.45, netSos: 0.5, netCs: 0.45, netQ1: 2, netQ2: 0.6 };
 
 function ny(e, a, op) {
   let t = uy(e),
@@ -7271,7 +7289,10 @@ function fy(e, a) {
         Be(
           e,
           "Coaching optimized",
-          "The strongest positional lineup, a 200-minute rotation, and matching team tactics have been set."
+          "The strongest positional lineup, a 200-minute rotation, and matching team tactics have been set." +
+            (W_keptTactics(e).length
+              ? ` Your own ${W_keptTactics(e).join(", ")} setting${W_keptTactics(e).length > 1 ? "s" : ""} stayed as you chose.`
+              : "")
         ));
       break;
     }
@@ -7874,7 +7895,17 @@ function fy(e, a) {
         }[t]?.includes(l)
       )
         throw new Error("Choose a valid coaching system.");
-      e.tactics[t] = l;
+      ((e.tactics[t] = l), ["offense", "defense", "pace"].includes(t) && (e.tacLock = { ...e.tacLock, [t]: !0 }));
+      break;
+    }
+    case "tacticsMode": {
+      let t = String(a.key);
+      if (!["offense", "defense", "pace"].includes(t)) throw new Error("Choose a valid coaching system.");
+      if (a.keep) e.tacLock = { ...e.tacLock, [t]: !0 };
+      else {
+        let l = { ...e.tacLock };
+        (delete l[t], (e.tacLock = l), W_autoTactics(e));
+      }
       break;
     }
     case "schedule": {
@@ -8764,6 +8795,7 @@ var Gn =
     lineup: x.array(x.string()).max(5),
     shotPriority: x.array(x.string()).max(5).optional(),
     tactics: x.object({ offense: x.string(), defense: x.string(), pace: x.string(), tmo: x.string().optional() }),
+    tacLock: x.object({ offense: x.boolean().optional(), defense: x.boolean().optional(), pace: x.boolean().optional() }).optional(),
     history: x.array(
       x.object({
         year: A,
@@ -10374,7 +10406,7 @@ function applyCfg() {
   ));
 
 // Filled in by tools/build.js: which build this is, and the "What's new" digest of the instruction log (item 32).
-var BUILD_INFO = {"version":"V13","build":206,"commit":"654e26d","dirty":false,"date":"2026-10-09T13:24:51.076Z"},
+var BUILD_INFO = {"version":"V13","build":207,"commit":"a2f35a4","dirty":false,"date":"2026-10-09T14:44:22.673Z"},
   WHATS_NEW = [{"id":"0036","date":"2026-10-06","title":"The left sidebar must never need scrolling.","text":"The left sidebar now fits with no scroll bar and nothing cut off at all seven window sizes you listed. All the checks pass, and the work is committed (not pushed)."},{"id":"0035","date":"2026-10-06","title":"Make the Former players tab show only","text":"The Former players tab now shows only the players you've favorited, and you can favorite from the new overlay. Everything I ran passes, and it's committed (not pushed)."},{"id":"0034","date":"2026-10-06","title":"Big update","text":"Items 1, 2 and 3 are done, and each has its own commit. No game rules, saves or numbers were touched. For each item I ran npm test, the quick screen test (135 steps, 0 failed) and the strict no-sideways-scrolling test. All passed at 390, 1000, 1100, 1280 and 1440 wide. I also looked at a desktop screenshot of Program…"},{"id":"0033","date":"2026-10-06","title":"Finish three tuning gaps that are still","text":"I finished the work and committed it (not pushed). The small-budget tournament rate is fixed and fewer coaches get fired. The season-5 dip shrank by half but does not meet the target in the low-budget levels."},{"id":"0032","date":"2026-10-06","title":"Big update","text":"Items 1 to 4 are done and committed, one commit each, nothing pushed. Items 2 and 4 are only partly done, and items 1 and 3 have gaps too. They are listed below."},{"id":"0031","date":"2026-10-05","title":"1. Auto-recruit should chase the best players,","text":"Both runs are going; I'll check them when they finish."},{"id":"0030","date":"2026-10-05","title":"Absolutely no sideways scrolling anywhere, and no","text":"At 1000, 1100, 1280 and 1440 wide, nothing scrolls sideways or is cut off, no table column is hidden, and only the page scrolls up and down. All tests pass, and the change is committed but not pushed."},{"id":"0029","date":"2026-10-05","title":"Two screen fixes, done together. 1. Put","text":"Both screen fixes are done and committed (fb99ea4, not pushed). The new overflow check passes: no screen scrolls sideways at 1100, 1280 or 1440 wide, so no table needed an exception."},{"id":"0027","date":"2026-10-05","title":"Big update","text":"Stage 1 is finished. I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\" (commit 0b71168). I changed no game code and pushed nothing. The commit also picked up tools/prompts/edit-0027-big-update-s1.txt, which was sitting uncommitted in the project folder."},{"id":"0025","date":"2026-10-05","title":"Big update: items 12, 15, 16, 22, 31, 33, 34, 53, 55","text":"Stage 1 is finished: I measured the game as it stands, wrote the numbers into CLAUDE.md under \"Baselines\", and committed it as \"Baseline\". I changed no game code and did not push. The commit also picked up the claude-log and prompt files that were already waiting."},{"id":"0024","date":"2026-10-05","title":"Big update: items 8, 9, 10, 11, 47, 50, 51, 54","text":"The baseline is recorded and saved as one commit called \"Baseline\" (ce627d2). I changed no game code, and nothing was pushed. The \"Baselines\" section of CLAUDE.md now has a full and a quick baseline, and the old ones are still there. The commit also picked up the log files that were already waiting in the folder."},{"id":"0023","date":"2026-10-04","title":"Big update: items 37, 38, 39, 40, 41, 42, 43, 44, 45","text":"I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\". I changed no game code, and nothing was pushed. The numbers come from commit 7cffff8, the code as it stood before this stage."},{"id":"0022","date":"2026-10-04","title":"Big update: items 26, 27, 28, 29, 30","text":"Both baselines are measured, written into CLAUDE.md under \"Baselines\" and committed as \"Baseline\". I didn't change any game code, and nothing was pushed."},{"id":"0021","date":"2026-10-04","title":"Big update: items 17, 18, 19, 21, 32, 35, 36, 52","text":"All five items are done and committed one by one (17, 18, 19, 21, 32), and nothing was pushed. None of them touched how games play. After each one npm test passed, including the draft shares, and I ran the screen tests for the ones that changed screens."},{"id":"0020","date":"2026-10-04","title":"Big update: items 14, 20, 48, 49","text":"All four items are done and committed, one commit each (14, 20, 48, 49). Nothing was pushed. After each one npm test passed. The three that change a screen also passed the quick screen test (101 checks, none failed)."},{"id":"0018","date":"2026-10-04","title":"Confrence and Schedule ranking boost","text":"Schedule strength and conference strength now count a bit more in the national rankings. The build and npm test pass, and the change is committed but not pushed."},{"id":"0017","date":"2026-10-04","title":"Big update 1","text":"All seven changes are in and committed (nothing pushed). The build, npm test and the screen test (186 steps) all pass, and the game-numbers test shows no change to how games play. Two of the fixes are checked with real player and school data; the draft-keep and rankings changes are only partly checked (see the end)."},{"id":"0016","date":"2026-10-04","title":"asking price displayed my recruits","text":"Your players' cards now show an \"Asking\" amount under the NIL line, so you can see what each one wants next to what you pay. I haven't looked at the cards on screen, so I haven't seen how it fits."},{"id":"0015","date":"2026-10-04","title":"phone","text":"The game now works on a 390-pixel-wide phone screen, it's easy to tap, and it can be installed as a home-screen app that works without internet. Every check passed. Nothing has been sent to GitHub or the public website yet."},{"id":"0014","date":"2026-10-03","title":"confrence ranking/top 25","text":"The Top 25 now lives in League news, and League news has a new Conference ranking tab. The game builds, npm test passes, and the click-through screen test passed all 186 steps."},{"id":"0013","date":"2026-10-03","title":"Put the confrence under team names in","text":"On the start page, each school card now shows its conference on a line right under the team name (for example, \"Gulf Conference\" under \"Delta State Tech\"). It's committed and not pushed."},{"id":"0012","date":"2026-10-03","title":"scratch all of this 5 years before","text":"Poor schools now have low expectations and a long grace period, and rich schools have high expectations and a short one. Schools are labeled by budget, not \"Easy\" or \"Hard\". I rebuilt the game, committed the change and did not push."},{"id":"0011","date":"2026-10-03","title":"Reverse the difficuly things and put the","text":"The difficulty is now reversed: rich, strong schools are Easy and poor, weak schools are Brutal. The start page lists schools from richest to poorest. The build, npm test and npm run test:ui all pass. The balance test now flags every tier, because its targets were written for the old direction."},{"id":"0010","date":"2026-10-03","title":"Let player go fix","text":"I couldn't reproduce the break, so I only fixed a wrong message on that screen. If you still see the problem, I need to know exactly what happened."},{"id":"0009","date":"2026-10-03","title":"Tab in league news with the top 50 players","text":"League News now has a \"Top 50\" tab. It's built, tested and committed, and I didn't push."},{"id":"0008","date":"2026-10-03","title":"pictures on my recruit recruit pages are","text":"The recruit picture is fixed: it now shows the whole head and shoulders instead of a zoomed-in crop. I checked this in a screenshot of a recruit's page."},{"id":"0007","date":"2026-10-03","title":"Suggested Edits","text":"That notice only confirms the balance runs ended. I'd already read their results and finished the work, so nothing changes."},{"id":"0006","date":"2026-10-03","title":"start new career option","text":"There's now a Start a new career button on the screen that says the saved career could not be opened."},{"id":"0005","date":"2026-10-03","title":"v13","text":"All 19 requests are done and saved as one commit on this computer. Nothing has been pushed to GitHub."},{"id":"0004","date":"2026-10-03","title":"Task 4: asking prices, long careers, season UI checks","text":"All four parts are done and committed as 29f99a0 (not pushed). The one target not quite met: the Hard tier has 44% of long careers fired against \"about 40%\"."},{"id":"0003","date":"2026-10-03","title":"Task 3: UI click-through test and multi-season money test","text":"I added both tests and ran them. Together they found one real bug, which I fixed. Final results: - npm run test:ui: 167 of 167 steps pass. - npm run test:nil: no CHECK flags. - npm test: all checks pass. - npm run test:realism: every row is still PASS, with the same numbers as before (the fix only touched the screen,…"},{"id":"0002","date":"2026-10-03","title":"Task 2: fix rebounds, blocks and other-team noise","text":"All realism rows now pass, balance is still in range, and npm test passes. The changes are committed (not pushed)."},{"id":"0001","date":"2026-10-03","title":"Task 1: add realism and balance measurement tests","text":"The balance run has started (30 schools, 3 seasons, 5 Chrome workers). I'll get a notification when it finishes."},{"id":"0000","date":"2026-10-03","title":"First look: check the build and plan the fixes (read-only)","text":"The game has been split into src/. The user asked me to confirm it builds and that npm test passes, then list the open issues from CLAUDE.md and propose an order to fix them. No files were to be changed."}];
 
 function DiagPanel({ g: e }) {
@@ -11218,7 +11250,7 @@ function SettingsPage({ g: e, run: run }) {
           children: (0, s.jsx)("div", {
             className: "set-body",
             children: [
-              ["autoCoach", "Always auto-set coaching", "Before every game the best lineup, your minutes plan and matching tactics are set for you. Injured players are swapped out automatically."],
+              ["autoCoach", "Always auto-set coaching", "Before every game the best lineup, your minutes plan and matching tactics are set for you (offense, defense and pace you chose yourself are kept). Injured players are swapped out automatically."],
               ["autoScout", "Auto-scout favorite recruits", "Each recruiting round, unused scouting visits go to the recruits you marked with the bookmark (favorites), best first."],
             ].map(([k, l, hint]) =>
               (0, s.jsxs)(
@@ -11633,7 +11665,7 @@ function CourtsideGame({career,run,onClose}) {
 }
 
 window.__dbg = {
-  Ce,
+  Ce, fl,
   W_courtGame, W_courtMatch, W_courtValidate, W_courtKey, HC,
   W_scout: W_scout,
   W_arch: W_arch,
@@ -18515,7 +18547,7 @@ function KC({ g: e, run: a, select: t }) {
               value: mp,
               onChange: (z) => a({ type: "minPreset", value: z.target.value }),
               children: Object.keys(MINP).map((d) =>
-                (0, s.jsx)("option", { value: d, children: d === "Stars" ? "Top three" : d }, d)
+                (0, s.jsx)("option", { value: d, children: d === "Stars" ? "Big three" : d }, d)
               ),
             })
           : (0, s.jsx)("div", {
@@ -18531,7 +18563,7 @@ function KC({ g: e, run: a, select: t }) {
                     className: "plan-card" + (d === mp ? " active" : ""),
                     onClick: () => a({ type: "minPreset", value: d }),
                     children: [
-                      (0, s.jsx)("strong", { children: d === "Stars" ? "Top three" : d }),
+                      (0, s.jsx)("strong", { children: d === "Stars" ? "Big three" : d }),
                       (0, s.jsx)("span", { children: MINP[d].note }),
                     ],
                   },
@@ -18789,6 +18821,20 @@ function KC({ g: e, run: a, select: t }) {
                             children: r.options.map((n) => (0, s.jsx)("option", { children: n }, n)),
                           }),
                           (0, s.jsx)("small", { children: r.note }),
+                          (0, s.jsxs)("small", {
+                            className: "tactic-mode",
+                            children: [
+                              e.tacLock?.[r.key] ? "Kept as you set it, even with auto coaching." : "Set automatically.",
+                              (0, s.jsx)("button", {
+                                type: "button",
+                                className: "tactic-auto",
+                                onClick: (n) => {
+                                  (n.preventDefault(), a({ type: "tacticsMode", key: r.key, keep: !e.tacLock?.[r.key] }));
+                                },
+                                children: e.tacLock?.[r.key] ? "Set automatically" : "Keep this",
+                              }),
+                            ],
+                          }),
                         ],
                       },
                       r.key
