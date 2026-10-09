@@ -2480,7 +2480,7 @@ function Gf(e, a, t, l = 1, u = jl(e, Le)) {
     stars: d,
     source: a,
     priority: jl(e, ["NIL", "Playing time", "Development", "Winning"]),
-    interest: le(85 - d * 13 + e.rep * 0.4 + j(e, -8, 12), 5, 95),
+    interest: le(85 - d * 13 + (TUNE.coachRep ? W_recRep(e) : e.rep) * 0.4 + j(e, -8, 12), 5, 95),
     scouted: a === "Roster" ? 2 : 0,
     target: !1,
     status: "Available",
@@ -2898,16 +2898,17 @@ function sy(e, a, t, l = Date.now()) {
 }
 
 function Nn(e, a, t, l) {
-  let u = le(t / Math.max(1e3, a.ask), 0, 2.5),
+  let rr = TUNE.coachRep ? W_recRep(e) : e.rep,
+    u = le(t / Math.max(1e3, a.ask), 0, 2.5),
     o = wt(l) - wt((a.sg ?? a.stars) >= 4 ? "Starter" : (a.sg ?? a.stars) >= 2 ? "Rotation" : "Bench"),
-    r = Math.max(0, (a.sg ?? a.stars) * 12 - e.rep) * 0.62 + [0, 2, 5, 9, 14, 20][a.sg ?? a.stars];
+    r = Math.max(0, (a.sg ?? a.stars) * 12 - rr) * 0.62 + [0, 2, 5, 9, 14, 20][a.sg ?? a.stars];
   return Math.round(
     le(
       a.interest * 0.45 +
         u * (a.priority === "NIL" ? 39 : 30) +
         Math.max(0, u - 1) * 5 +
         o * (a.priority === "Playing time" ? 1.3 : 0.7) +
-        e.rep * 0.2 -
+        rr * 0.2 -
         r +
         (e.specialty === "Recruiting" ? 9 + e.level : 0) +
         (a.priority === "Development" && e.specialty === "Development" ? 10 : 0) +
@@ -3079,7 +3080,8 @@ function ry(e, a, t) {
 // programScope: 1 = season records carry their school (Career history can show the current program only); 0 keeps the original records (legacy tests)
 // walkonFloor: the least chance (percent) any walk-on, rare ones included, has of saying yes to an invitation (0 = the original 28-70 for rare ones, 85 for 50-59)
 // spPen: shot-chance penalty per priority rank, now 0: a priority player keeps his normal percentages on more shots (he used to shoot up to 2 points worse, which made his averages look worse, not better)
-var TUNE = { portalStar: 2.5, programScope: 1, walkonFloor: 90, leagueBoost: 2.9, autoDepth: 1, depthReserve: 7000, autoBest: 1, arPot: 0.1, arNeed: 0.5, arLams: [0, 1, 2, 4, 8, 16, 32, 64], spBoost: [1.55, 1.38, 1.24, 1.13, 1.06], spPen: [0, 0, 0, 0, 0], u: 1, f: 0.003, o2: 0.505, o3: 0.335, d2: 0.505, d3: 0.335, sk: 0.0008, b: 0.2, tend: 1, portal: 1.5, portalShow: 170, withdraw: 0.05, pvisits: 3, ovisits: 5, ovBonus: 8, foulOut: 5, sf: 0.11, nf: 0.216, bonus1: 7, bonus2: 10, timeouts: 4, toRun: 4, toBoost: 0.012, toCarry: 3, toLate: 180, shotClock: 30, heat: 0.07, mom: 0.04, scShift: 0.03, closeSecs: 240, blowSecs: 430, hackSecs: 50, pollStep: 0.3, stagger: 1, winNow: 0.35, rivalry: 0.85, netCr: 60, netCn: 9, netW: 65, netR: 0.45, netSos: 0.5, netCs: 0.45, netQ1: 2, netQ2: 0.6 };
+// coachRep: 1 = coach reputation (e.crep) counts for recruits and job offers; crepPull = how much of the coach-program gap recruits feel (0.6 of it)
+var TUNE = { portalStar: 2.5, coachRep: 1, crepPull: 1, programScope: 1, walkonFloor: 90, leagueBoost: 2.9, autoDepth: 1, depthReserve: 7000, autoBest: 1, arPot: 0.1, arNeed: 0.5, arLams: [0, 1, 2, 4, 8, 16, 32, 64], spBoost: [1.55, 1.38, 1.24, 1.13, 1.06], spPen: [0, 0, 0, 0, 0], u: 1, f: 0.003, o2: 0.505, o3: 0.335, d2: 0.505, d3: 0.335, sk: 0.0008, b: 0.2, tend: 1, portal: 1.5, portalShow: 170, withdraw: 0.05, pvisits: 3, ovisits: 5, ovBonus: 8, foulOut: 5, sf: 0.11, nf: 0.216, bonus1: 7, bonus2: 10, timeouts: 4, toRun: 4, toBoost: 0.012, toCarry: 3, toLate: 180, shotClock: 30, heat: 0.07, mom: 0.04, scShift: 0.03, closeSecs: 240, blowSecs: 430, hackSecs: 50, pollStep: 0.3, stagger: 1, winNow: 0.35, rivalry: 0.85, netCr: 60, netCn: 9, netW: 65, netR: 0.45, netSos: 0.5, netCs: 0.45, netQ1: 2, netQ2: 0.6 };
 
 function ny(e, a, op) {
   let t = uy(e),
@@ -4118,17 +4120,21 @@ function dyOffers(e, a, l) {
               : String(e.berth || "").includes("berth")
                 ? 1
                 : 0,
-    pf = a.wins - g + run + (e.confChampion ? 2 : 0);
-  if (ne(e) >= le(0.05 + pf * 0.05, 0, 0.75)) return;
+    pf = a.wins - g + run + (e.confChampion ? 2 : 0),
+    cr = TUNE.coachRep ? W_crepInit(e) : 50,
+    // coach reputation: a respected coach hears from programs even after an ordinary season; an unknown one only after a big one
+    pOffer = le(0.05 + pf * 0.05 + (cr - 50) * 0.006, 0, 0.85);
+  if (ne(e) >= pOffer) return;
   let t = tierOf(e),
     c = Xl.filter((h) => h.id !== e.school.id),
     up = c.filter((h) => tierOf({ school: h }) > t),
     vc = (e.vac || [])
       .map((id) => Xl.find((h) => h.id === id))
-      .filter((h) => h && h.id !== e.school.id && tierOf({ school: h }) >= t && h.rep <= e.rep + 20),
+      .filter((h) => h && h.id !== e.school.id && tierOf({ school: h }) >= t && h.rep <= Math.max(e.rep, cr) + 20),
     pool = vc.length ? [...vc] : up.length ? up : c.filter((h) => tierOf({ school: h }) === t),
     pk = [];
-  for (let k = 0; k < 2 && pool.length; k++) {
+  let nOff = cr >= 75 ? 3 : cr >= 40 ? 2 : 1;
+  for (let k = 0; k < nOff && pool.length; k++) {
     let h = pool.splice(Math.floor(ne(e) * pool.length), 1)[0];
     pk.push(h.id);
   }
@@ -5405,6 +5411,53 @@ function W_asstYear(e) {
     }
   }
   e.asstPool = W_asstPool(e);
+}
+
+// Coach reputation (e.crep, 0-99): yours, not the school's. It follows what YOU have done (win goals beaten, tournament runs,
+// titles) and comes with you when you change jobs, where program reputation (e.rep) belongs to the school.
+// It matters in two places: recruits weigh the coach as well as the program (W_recRep), and job offers follow the coach (dyOffers).
+function W_crepInit(e) {
+  if (e.crep == null) {
+    // older saves: estimate from the record so far
+    const h = e.history || [];
+    let c = 25;
+    for (const x of h) c += W_crepDelta(x, e);
+    e.crep = le(Math.round(c), 5, 99);
+  }
+  return e.crep;
+}
+// the season's contribution: beat the win goal +4, 20 wins +1, tournament berth +3, Sweet 16 +2 more, Final Four +6, title +12,
+// conference title +3; fall well short of the goal -3; a plain season drifts toward 50 by a point
+function W_crepDelta(x, e) {
+  if (!x) return 0;
+  let d = 0;
+  const goal = x.goal ?? (e && e.school ? e.school.wins : 20);
+  if (x.wins >= goal) d += 4;
+  else if (x.wins < goal - 4) d -= 3;
+  if (x.wins >= 20) d += 1;
+  if (x.wins >= 25) d += 1;
+  const r = x.result || "";
+  if (/berth/.test(x.bt || "")) d += 3;
+  if (["Sweet 16", "Elite Eight"].includes(r)) d += 2;
+  if (["Final Four", "National runner-up"].includes(r)) d += 6;
+  if (r === "National champions") d += 12;
+  if (x.cc) d += 3;
+  if (d === 0) d = 0.5 * Math.sign(50 - (e?.crep ?? 50));
+  return d;
+}
+function W_crepSeason(e, rec) {
+  const before = W_crepInit(e);
+  e.crep = le(Math.round(before + W_crepDelta(rec, e)), 5, 99);
+  return { before, after: e.crep };
+}
+// what a recruit sees: the program, lifted by a coach whose name carries further than the school's.
+// A 70-rep coach at a 30-rep program recruits like a 54-rep program; at a 70-rep program like 74. Never below the program itself.
+function W_recRep(e) {
+  const p = e.rep, c = W_crepInit(e);
+  return le(Math.round(Math.max(p, p + (c - p) * 0.6 * (TUNE.crepPull ?? 1))), 0, 99);
+}
+function W_crepLabel(c) {
+  return c >= 85 ? "Legend" : c >= 70 ? "National name" : c >= 55 ? "Respected" : c >= 40 ? "Rising" : c >= 25 ? "Unproven" : "Unknown";
 }
 
 var FIELD_SIZE = 68;
@@ -6767,6 +6820,8 @@ function dy(e) {
     players: e.roster.map((n) => ({ name: n.name, pos: n.pos, ovr: n.ovr, stats: { ...n.stats } })),
   }),
     dyJob(e, a, l),
+    TUNE.coachRep && (e.history.at(-1).goal = _s({ ...e, rep: l })),
+    TUNE.coachRep && (e.__crep = W_crepSeason(e, e.history.at(-1))),
     dyOffers(e, a, l),
     W_coachYear(e, a, u),
     (e.history.at(-1).awards = dyAwards(e, a, _s({ ...e, rep: l }))),
@@ -6774,7 +6829,7 @@ function dy(e) {
     Be(
       e,
       u ? "Expectations exceeded" : "Season evaluation",
-      `${a.wins} wins against a goal of ${_s({ ...e, rep: l })}. Reputation ${l} \u2192 ${e.rep}. Next year\u2019s NIL budget: ${q(e.budget)}.`
+      `${a.wins} wins against a goal of ${_s({ ...e, rep: l })}. ${TUNE.coachRep ? "Program reputation" : "Reputation"} ${l} \u2192 ${e.rep}.${TUNE.coachRep && e.__crep ? ` Your reputation as a coach ${e.__crep.before} \u2192 ${e.__crep.after} (${W_crepLabel(e.__crep.after)}).` : ""} Next year\u2019s NIL budget: ${q(e.budget)}.`
     ),
     (e.school.wins = a.wins));
 }
@@ -7496,7 +7551,7 @@ function fy(e, a) {
       W_coachInit(e);
       // item 56: skills and career earnings come with you; leaving early costs an exit fee and you sign a new contract
       W_ach(e);   // record every achievement earned at this school before the career object is rebuilt
-      let keep = { skills: { ...e.skills }, fee: W_exitFee(e), rep: e.rep, achieved: { ...(e.achieved || {}) } },
+      let keep = { skills: { ...e.skills }, fee: W_exitFee(e), rep: e.rep, achieved: { ...(e.achieved || {}) }, crep: TUNE.coachRep ? W_crepInit(e) : undefined },
         o = sy(a.school, e.coach, e.specialty, (e.rng + e.year * 7919) >>> 0);
       keep.earn = e.earn - keep.fee;
       ((o.year = e.year + 1),
@@ -7541,10 +7596,11 @@ function fy(e, a) {
         (e.skills = keep.skills),
         (e.earn = keep.earn),
         (e.achieved = keep.achieved),
+        (keep.crep !== undefined && (e.crep = keep.crep)),
         // the new program starts its own history; its last season is the record it had when you took the job
         (e.jobYear = e.year),
         (e.prevRec = { wins: t.wins, losses: Math.max(0, 30 - t.wins), school: t.name, year: e.year - 1, est: !0 }),
-        (e.contract = W_newContract(e, e.baseBudget, keep.rep, 4)),
+        (e.contract = W_newContract(e, e.baseBudget, Math.max(keep.rep, keep.crep ?? 0), 4)),
         Be(
           e,
           "New job",
@@ -8374,7 +8430,8 @@ function hy(e) {
     (e.mkt ??= 1),
     e.rosters || W_init(e),
     e.rev || W_revInit(e),
-    W_coachInit(e));
+    W_coachInit(e),
+    TUNE.coachRep && W_crepInit(e));
   for (let t of [...e.roster, ...e.prospects, ...e.walkons])
     ((t.faceSeed ??= TS(`${e.school.id}-${t.id}-${t.name}`)),
       (() => {
@@ -8740,6 +8797,7 @@ var Gn =
     heat: A.optional(),
     fired: x.boolean().optional(),
     achieved: x.record(x.string(), A).optional(),
+    crep: A.optional(),
     firedMsg: x.string().optional(),
     walkons: x.array($f).max(100).optional(),
     signingEvents: x
@@ -8815,6 +8873,7 @@ var Gn =
       x.object({
         year: A,
         sid: x.string().optional(),
+        goal: A.optional(),
         school: x.string().optional(),
         wins: A,
         losses: A,
@@ -10421,7 +10480,7 @@ function applyCfg() {
   ));
 
 // Filled in by tools/build.js: which build this is, and the "What's new" digest of the instruction log (item 32).
-var BUILD_INFO = {"version":"V13","build":214,"commit":"efac295","dirty":false,"date":"2026-10-09T21:28:59.096Z"},
+var BUILD_INFO = {"version":"V13","build":215,"commit":"30a8615","dirty":false,"date":"2026-10-09T21:51:24.134Z"},
   WHATS_NEW = [{"id":"0036","date":"2026-10-06","title":"The left sidebar must never need scrolling.","text":"The left sidebar now fits with no scroll bar and nothing cut off at all seven window sizes you listed. All the checks pass, and the work is committed (not pushed)."},{"id":"0035","date":"2026-10-06","title":"Make the Former players tab show only","text":"The Former players tab now shows only the players you've favorited, and you can favorite from the new overlay. Everything I ran passes, and it's committed (not pushed)."},{"id":"0034","date":"2026-10-06","title":"Big update","text":"Items 1, 2 and 3 are done, and each has its own commit. No game rules, saves or numbers were touched. For each item I ran npm test, the quick screen test (135 steps, 0 failed) and the strict no-sideways-scrolling test. All passed at 390, 1000, 1100, 1280 and 1440 wide. I also looked at a desktop screenshot of Program…"},{"id":"0033","date":"2026-10-06","title":"Finish three tuning gaps that are still","text":"I finished the work and committed it (not pushed). The small-budget tournament rate is fixed and fewer coaches get fired. The season-5 dip shrank by half but does not meet the target in the low-budget levels."},{"id":"0032","date":"2026-10-06","title":"Big update","text":"Items 1 to 4 are done and committed, one commit each, nothing pushed. Items 2 and 4 are only partly done, and items 1 and 3 have gaps too. They are listed below."},{"id":"0031","date":"2026-10-05","title":"1. Auto-recruit should chase the best players,","text":"Both runs are going; I'll check them when they finish."},{"id":"0030","date":"2026-10-05","title":"Absolutely no sideways scrolling anywhere, and no","text":"At 1000, 1100, 1280 and 1440 wide, nothing scrolls sideways or is cut off, no table column is hidden, and only the page scrolls up and down. All tests pass, and the change is committed but not pushed."},{"id":"0029","date":"2026-10-05","title":"Two screen fixes, done together. 1. Put","text":"Both screen fixes are done and committed (fb99ea4, not pushed). The new overflow check passes: no screen scrolls sideways at 1100, 1280 or 1440 wide, so no table needed an exception."},{"id":"0027","date":"2026-10-05","title":"Big update","text":"Stage 1 is finished. I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\" (commit 0b71168). I changed no game code and pushed nothing. The commit also picked up tools/prompts/edit-0027-big-update-s1.txt, which was sitting uncommitted in the project folder."},{"id":"0025","date":"2026-10-05","title":"Big update: items 12, 15, 16, 22, 31, 33, 34, 53, 55","text":"Stage 1 is finished: I measured the game as it stands, wrote the numbers into CLAUDE.md under \"Baselines\", and committed it as \"Baseline\". I changed no game code and did not push. The commit also picked up the claude-log and prompt files that were already waiting."},{"id":"0024","date":"2026-10-05","title":"Big update: items 8, 9, 10, 11, 47, 50, 51, 54","text":"The baseline is recorded and saved as one commit called \"Baseline\" (ce627d2). I changed no game code, and nothing was pushed. The \"Baselines\" section of CLAUDE.md now has a full and a quick baseline, and the old ones are still there. The commit also picked up the log files that were already waiting in the folder."},{"id":"0023","date":"2026-10-04","title":"Big update: items 37, 38, 39, 40, 41, 42, 43, 44, 45","text":"I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\". I changed no game code, and nothing was pushed. The numbers come from commit 7cffff8, the code as it stood before this stage."},{"id":"0022","date":"2026-10-04","title":"Big update: items 26, 27, 28, 29, 30","text":"Both baselines are measured, written into CLAUDE.md under \"Baselines\" and committed as \"Baseline\". I didn't change any game code, and nothing was pushed."},{"id":"0021","date":"2026-10-04","title":"Big update: items 17, 18, 19, 21, 32, 35, 36, 52","text":"All five items are done and committed one by one (17, 18, 19, 21, 32), and nothing was pushed. None of them touched how games play. After each one npm test passed, including the draft shares, and I ran the screen tests for the ones that changed screens."},{"id":"0020","date":"2026-10-04","title":"Big update: items 14, 20, 48, 49","text":"All four items are done and committed, one commit each (14, 20, 48, 49). Nothing was pushed. After each one npm test passed. The three that change a screen also passed the quick screen test (101 checks, none failed)."},{"id":"0018","date":"2026-10-04","title":"Confrence and Schedule ranking boost","text":"Schedule strength and conference strength now count a bit more in the national rankings. The build and npm test pass, and the change is committed but not pushed."},{"id":"0017","date":"2026-10-04","title":"Big update 1","text":"All seven changes are in and committed (nothing pushed). The build, npm test and the screen test (186 steps) all pass, and the game-numbers test shows no change to how games play. Two of the fixes are checked with real player and school data; the draft-keep and rankings changes are only partly checked (see the end)."},{"id":"0016","date":"2026-10-04","title":"asking price displayed my recruits","text":"Your players' cards now show an \"Asking\" amount under the NIL line, so you can see what each one wants next to what you pay. I haven't looked at the cards on screen, so I haven't seen how it fits."},{"id":"0015","date":"2026-10-04","title":"phone","text":"The game now works on a 390-pixel-wide phone screen, it's easy to tap, and it can be installed as a home-screen app that works without internet. Every check passed. Nothing has been sent to GitHub or the public website yet."},{"id":"0014","date":"2026-10-03","title":"confrence ranking/top 25","text":"The Top 25 now lives in League news, and League news has a new Conference ranking tab. The game builds, npm test passes, and the click-through screen test passed all 186 steps."},{"id":"0013","date":"2026-10-03","title":"Put the confrence under team names in","text":"On the start page, each school card now shows its conference on a line right under the team name (for example, \"Gulf Conference\" under \"Delta State Tech\"). It's committed and not pushed."},{"id":"0012","date":"2026-10-03","title":"scratch all of this 5 years before","text":"Poor schools now have low expectations and a long grace period, and rich schools have high expectations and a short one. Schools are labeled by budget, not \"Easy\" or \"Hard\". I rebuilt the game, committed the change and did not push."},{"id":"0011","date":"2026-10-03","title":"Reverse the difficuly things and put the","text":"The difficulty is now reversed: rich, strong schools are Easy and poor, weak schools are Brutal. The start page lists schools from richest to poorest. The build, npm test and npm run test:ui all pass. The balance test now flags every tier, because its targets were written for the old direction."},{"id":"0010","date":"2026-10-03","title":"Let player go fix","text":"I couldn't reproduce the break, so I only fixed a wrong message on that screen. If you still see the problem, I need to know exactly what happened."},{"id":"0009","date":"2026-10-03","title":"Tab in league news with the top 50 players","text":"League News now has a \"Top 50\" tab. It's built, tested and committed, and I didn't push."},{"id":"0008","date":"2026-10-03","title":"pictures on my recruit recruit pages are","text":"The recruit picture is fixed: it now shows the whole head and shoulders instead of a zoomed-in crop. I checked this in a screenshot of a recruit's page."},{"id":"0007","date":"2026-10-03","title":"Suggested Edits","text":"That notice only confirms the balance runs ended. I'd already read their results and finished the work, so nothing changes."},{"id":"0006","date":"2026-10-03","title":"start new career option","text":"There's now a Start a new career button on the screen that says the saved career could not be opened."},{"id":"0005","date":"2026-10-03","title":"v13","text":"All 19 requests are done and saved as one commit on this computer. Nothing has been pushed to GitHub."},{"id":"0004","date":"2026-10-03","title":"Task 4: asking prices, long careers, season UI checks","text":"All four parts are done and committed as 29f99a0 (not pushed). The one target not quite met: the Hard tier has 44% of long careers fired against \"about 40%\"."},{"id":"0003","date":"2026-10-03","title":"Task 3: UI click-through test and multi-season money test","text":"I added both tests and ran them. Together they found one real bug, which I fixed. Final results: - npm run test:ui: 167 of 167 steps pass. - npm run test:nil: no CHECK flags. - npm test: all checks pass. - npm run test:realism: every row is still PASS, with the same numbers as before (the fix only touched the screen,…"},{"id":"0002","date":"2026-10-03","title":"Task 2: fix rebounds, blocks and other-team noise","text":"All realism rows now pass, balance is still in range, and npm test passes. The changes are committed (not pushed)."},{"id":"0001","date":"2026-10-03","title":"Task 1: add realism and balance measurement tests","text":"The balance run has started (30 schools, 3 seasons, 5 Chrome workers). I'll get a notification when it finishes."},{"id":"0000","date":"2026-10-03","title":"First look: check the build and plan the fixes (read-only)","text":"The game has been split into src/. The user asked me to confirm it builds and that npm test passes, then list the open issues from CLAUDE.md and propose an order to fix them. No files were to be changed."}];
 
 function DiagPanel({ g: e }) {
@@ -11709,7 +11768,7 @@ function CourtsideGame({career,run,onClose}) {
 }
 
 window.__dbg = {
-  Ce, fl, W_ach,
+  Ce, fl, W_ach, W_crepInit, W_crepDelta, W_crepSeason, W_recRep, W_crepLabel,
   W_courtGame, W_courtMatch, W_courtValidate, W_courtKey, HC,
   W_scout: W_scout,
   W_arch: W_arch,
@@ -11784,6 +11843,7 @@ function oc() {
     [tourAlert, setTourAlert] = (0, N.useState)(null),
     [injAlert, setInjAlert] = (0, N.useState)([]),
     [offersOpen, setOffersOpen] = (0, N.useState)(!1),
+    offersShown = (0, N.useRef)(""),
     [moveOpen, setMoveOpen] = (0, N.useState)(!1),
     [awardsOpen, setAwardsOpen] = (0, N.useState)(!1),
     [draftOpen, setDraftOpen] = (0, N.useState)(!1),
@@ -11820,6 +11880,12 @@ function oc() {
         (d(z instanceof Error ? z.message : "Could not load career."), y(!0), o(!0));
       }
     };
+  (0, N.useEffect)(() => {
+    // Job offers pop-up: once for each new set of offers, also after a reload (it used to appear only when offers arrived during this session)
+    const key = e?.jobOffers?.length ? `${e.year}:${e.jobOffers.join(",")}` : "";
+    if (key && key !== offersShown.current && CFG.pop.offers) { offersShown.current = key; setOffersOpen(!0); }
+    if (!key) offersShown.current = "";
+  }, [e?.jobOffers?.join(","), e?.year]);
   (0, N.useEffect)(() => {
     wo();
   }, []);
@@ -20983,9 +21049,15 @@ function a0S({ g: e }) {
             icon: (0, s.jsx)(ba, {}),
           }),
           (0, s.jsx)(ca, {
-            label: "CURRENT REPUTATION",
+            label: "PROGRAM REPUTATION",
             value: `${e.rep}/99`,
             note: `${e.school.name} \xB7 ${e.school.mascot}`,
+            icon: (0, s.jsx)(Es, {}),
+          }),
+          (0, s.jsx)(ca, {
+            label: "COACH REPUTATION",
+            value: `${W_crepInit(e)}/99`,
+            note: `${W_crepLabel(W_crepInit(e))} \xB7 yours, comes with you \xB7 recruits see the program as ${W_recRep(e)}`,
             icon: (0, s.jsx)(Es, {}),
           }),
         ],
