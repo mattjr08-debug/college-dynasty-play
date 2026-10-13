@@ -2583,6 +2583,8 @@ function Vf(e) {
       ]),
       e.prospects.push(o));
   }
+  // Assign NIL market values and recruiting/portal rankings to all prospects
+  W_nilAssignMarkets(e, e.prospects);
 }
 
 function jf(e) {
@@ -5679,6 +5681,156 @@ function W_nilBonus(e, t) {
 function W_nilCanAfford(e, t, o) {
   if (!TUNE.nilAI || !TUNE.nilBudgets || t.budget == null) return true;
   return W_nilCost(e, o) <= t.budget * 0.35;
+}
+
+// Player NIL Market Valuations (October 2026)
+// Separate market value estimates from actual contract offers.
+// High school recruits: ranked 1-300 nationally, plus unranked
+// Transfer portal: ranked by production and college performance
+
+// National recruiting ranking -> typical NIL market value (in thousands)
+const RECRUIT_RANKINGS = [
+  { rank: 5, typical: 1500, low: 750, high: 3000 },   // #1-5
+  { rank: 15, typical: 650, low: 300, high: 1500 },   // #6-15
+  { rank: 30, typical: 300, low: 125, high: 750 },    // #16-30
+  { rank: 50, typical: 150, low: 60, high: 350 },     // #31-50
+  { rank: 100, typical: 75, low: 25, high: 175 },     // #51-100
+  { rank: 150, typical: 35, low: 10, high: 90 },      // #101-150
+  { rank: 250, typical: 15, low: 2, high: 50 },       // #151-250
+  { rank: 400, typical: 7, low: 0, high: 25 },        // #251-400
+  { rank: Infinity, typical: 2, low: 0, high: 15 },   // Unranked
+];
+
+const PORTAL_RANKINGS = [
+  { rank: 10, typical: 2500, low: 1000, high: 5000 },   // #1-10
+  { rank: 25, typical: 1300, low: 600, high: 3000 },    // #11-25
+  { rank: 50, typical: 750, low: 350, high: 1600 },     // #26-50
+  { rank: 100, typical: 400, low: 175, high: 900 },     // #51-100
+  { rank: 200, typical: 175, low: 60, high: 450 },      // #101-200
+  { rank: 350, typical: 75, low: 20, high: 200 },       // #201-350
+  { rank: 500, typical: 30, low: 5, high: 100 },        // #351-500
+  { rank: 750, typical: 12, low: 0, high: 50 },         // #501-750
+  { rank: Infinity, typical: 3, low: 0, high: 20 },     // #751+
+];
+
+// Gaussian random number (mean 0, stddev 1)
+
+// Get the bracket for a ranking
+function getRankingBracket(rank, brackets) {
+  return brackets.find((b) => rank <= b.rank);
+}
+
+// Calculate NIL market value for a high school recruit
+// rankPos: position in the 300-recruit pyramid (0-299)
+function W_nilMarketHS(e, rankPos) {
+  // Map rank position to a recruiting rank (1-300, or 301+ for unranked)
+  const recruitRank = rankPos < 300 ? rankPos + 1 : 301;
+  
+  const bracket = getRankingBracket(recruitRank, RECRUIT_RANKINGS);
+  if (!bracket) return { rank: recruitRank, market: 2000 }; // fallback
+  
+  // Apply individual variation using Gaussian distribution
+  // Most players near their typical value, some higher/lower
+  const variation = W_gauss(e); // stddev ~1, mean 0
+  const ratio = Math.exp(variation * 0.15); // 15% stddev in log space
+  
+  const market = bracket.typical * ratio;
+  const clamped = Math.max(bracket.low, Math.min(bracket.high, Math.round(market)));
+  
+  return {
+    recruitRank,
+    nilMarket: clamped,
+  };
+}
+
+// Calculate NIL market value for a transfer
+// starPro: the player's production-based star rating (0-5)
+// year: college year (1-4+)
+function W_nilMarketTransfer(e, starPro, year, stats) {
+  // Portal ranking estimate based on star rating, college production, and age
+  let portalRank = 1000; // worst
+  
+  if (starPro >= 5) {
+    portalRank = j(e, 1, 10); // elite transfers
+  } else if (starPro >= 4) {
+    portalRank = j(e, 11, 25); // very good transfers
+  } else if (starPro >= 3) {
+    portalRank = j(e, 26, 50); // good transfers
+  } else if (starPro >= 2) {
+    portalRank = j(e, 51, 100); // decent transfers
+  } else if (starPro >= 1) {
+    portalRank = j(e, 101, 200); // lower-tier transfers
+  } else {
+    portalRank = j(e, 201, 500);
+  }
+  
+  // Adjust ranking based on production stats
+  if (stats && stats.pts > 0) {
+    const productivity = (stats.pts * 0.3 + stats.reb * 0.2 + stats.ast * 0.2) / (stats.gp || 1);
+    if (productivity > 15) portalRank = Math.max(1, portalRank - 20);
+    else if (productivity > 10) portalRank = Math.max(1, portalRank - 10);
+  }
+  
+  // Younger players with years left are more valuable
+  if (year <= 2) portalRank = Math.max(1, portalRank - 5);
+  else if (year >= 4) portalRank = Math.min(750, portalRank + 30);
+  
+  const bracket = getRankingBracket(portalRank, PORTAL_RANKINGS);
+  const variation = W_gauss(e);
+  const ratio = Math.exp(variation * 0.15);
+  const market = bracket.typical * ratio;
+  const clamped = Math.max(bracket.low, Math.min(bracket.high, Math.round(market)));
+  
+  return {
+    portalRank,
+    nilMarket: clamped,
+  };
+}
+
+// Assign NIL market values to a recruit pool
+// Modifies players in place, adding nilMarket, recruiting rank, and updating ask
+function W_nilAssignMarkets(e, prospects) {
+  // Create a shuffled ranking for high school recruits (1-300)
+  const hsPlayers = prospects.filter((p) => p.origin === "High school");
+  const rankIndices = hsPlayers.map((_, i) => i);
+  
+  // Fisher-Yates shuffle within each star tier to create randomized national rankings
+  for (let i = rankIndices.length - 1; i > 0; i--) {
+    const j_idx = Math.floor(ne(e) * (i + 1));
+    [rankIndices[i], rankIndices[j_idx]] = [rankIndices[j_idx], rankIndices[i]];
+  }
+  
+  // Assign national recruiting rankings to HS players
+  let rankCounter = 0;
+  for (const idx of rankIndices) {
+    const p = hsPlayers[idx];
+    const valuation = W_nilMarketHS(e, rankCounter);
+    p.recruitRank = valuation.recruitRank;
+    p.nilMarket = valuation.nilMarket;
+    
+    // Update ask to be based on market value with modest variation
+    // The ask should reflect the market value, not a fixed minimum
+    const askVariation = W_gauss(e) * 0.12; // ±12% variation
+    const newAsk = Math.round(p.nilMarket * (1 + askVariation) / 100) * 100;
+    // Set minimum to 100 (in thousands) which is $100K
+    p.ask = Math.max(100, newAsk);
+    
+    rankCounter++;
+  }
+  
+  // Assign portal rankings to transfers
+  const transferPlayers = prospects.filter((p) => p.origin === "Transfer");
+  for (const p of transferPlayers) {
+    const prodStats = p.history?.[0]?.stats || {};
+    const valuation = W_nilMarketTransfer(e, p.sg || p.stars, p.year, prodStats);
+    p.portalRank = valuation.portalRank;
+    p.nilMarket = valuation.nilMarket;
+    
+    // Update ask for transfers
+    const askVariation = W_gauss(e) * 0.12;
+    const newAsk = Math.round(p.nilMarket * (1 + askVariation) / 100) * 100;
+    p.ask = Math.max(100, newAsk);
+  }
 }
 
 // All 360 schools can be picked on the Choose a School screen (October 2026).
@@ -10818,7 +10970,7 @@ function applyCfg() {
   ));
 
 // Filled in by tools/build.js: which build this is, and the "What's new" digest of the instruction log (item 32).
-var BUILD_INFO = {"version":"V13","build":223,"commit":"c5684b1","dirty":false,"date":"2026-10-10T02:24:45.835Z"},
+var BUILD_INFO = {"version":"V13","build":225,"commit":"00d5126","dirty":false,"date":"2026-10-13T18:57:02.184Z"},
   WHATS_NEW = [{"id":"0036","date":"2026-10-06","title":"The left sidebar must never need scrolling.","text":"The left sidebar now fits with no scroll bar and nothing cut off at all seven window sizes you listed. All the checks pass, and the work is committed (not pushed)."},{"id":"0035","date":"2026-10-06","title":"Make the Former players tab show only","text":"The Former players tab now shows only the players you've favorited, and you can favorite from the new overlay. Everything I ran passes, and it's committed (not pushed)."},{"id":"0034","date":"2026-10-06","title":"Big update","text":"Items 1, 2 and 3 are done, and each has its own commit. No game rules, saves or numbers were touched. For each item I ran npm test, the quick screen test (135 steps, 0 failed) and the strict no-sideways-scrolling test. All passed at 390, 1000, 1100, 1280 and 1440 wide. I also looked at a desktop screenshot of Program…"},{"id":"0033","date":"2026-10-06","title":"Finish three tuning gaps that are still","text":"I finished the work and committed it (not pushed). The small-budget tournament rate is fixed and fewer coaches get fired. The season-5 dip shrank by half but does not meet the target in the low-budget levels."},{"id":"0032","date":"2026-10-06","title":"Big update","text":"Items 1 to 4 are done and committed, one commit each, nothing pushed. Items 2 and 4 are only partly done, and items 1 and 3 have gaps too. They are listed below."},{"id":"0031","date":"2026-10-05","title":"1. Auto-recruit should chase the best players,","text":"Both runs are going; I'll check them when they finish."},{"id":"0030","date":"2026-10-05","title":"Absolutely no sideways scrolling anywhere, and no","text":"At 1000, 1100, 1280 and 1440 wide, nothing scrolls sideways or is cut off, no table column is hidden, and only the page scrolls up and down. All tests pass, and the change is committed but not pushed."},{"id":"0029","date":"2026-10-05","title":"Two screen fixes, done together. 1. Put","text":"Both screen fixes are done and committed (fb99ea4, not pushed). The new overflow check passes: no screen scrolls sideways at 1100, 1280 or 1440 wide, so no table needed an exception."},{"id":"0027","date":"2026-10-05","title":"Big update","text":"Stage 1 is finished. I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\" (commit 0b71168). I changed no game code and pushed nothing. The commit also picked up tools/prompts/edit-0027-big-update-s1.txt, which was sitting uncommitted in the project folder."},{"id":"0025","date":"2026-10-05","title":"Big update: items 12, 15, 16, 22, 31, 33, 34, 53, 55","text":"Stage 1 is finished: I measured the game as it stands, wrote the numbers into CLAUDE.md under \"Baselines\", and committed it as \"Baseline\". I changed no game code and did not push. The commit also picked up the claude-log and prompt files that were already waiting."},{"id":"0024","date":"2026-10-05","title":"Big update: items 8, 9, 10, 11, 47, 50, 51, 54","text":"The baseline is recorded and saved as one commit called \"Baseline\" (ce627d2). I changed no game code, and nothing was pushed. The \"Baselines\" section of CLAUDE.md now has a full and a quick baseline, and the old ones are still there. The commit also picked up the log files that were already waiting in the folder."},{"id":"0023","date":"2026-10-04","title":"Big update: items 37, 38, 39, 40, 41, 42, 43, 44, 45","text":"I recorded both baselines in CLAUDE.md under \"Baselines\" and committed them as \"Baseline\". I changed no game code, and nothing was pushed. The numbers come from commit 7cffff8, the code as it stood before this stage."},{"id":"0022","date":"2026-10-04","title":"Big update: items 26, 27, 28, 29, 30","text":"Both baselines are measured, written into CLAUDE.md under \"Baselines\" and committed as \"Baseline\". I didn't change any game code, and nothing was pushed."},{"id":"0021","date":"2026-10-04","title":"Big update: items 17, 18, 19, 21, 32, 35, 36, 52","text":"All five items are done and committed one by one (17, 18, 19, 21, 32), and nothing was pushed. None of them touched how games play. After each one npm test passed, including the draft shares, and I ran the screen tests for the ones that changed screens."},{"id":"0020","date":"2026-10-04","title":"Big update: items 14, 20, 48, 49","text":"All four items are done and committed, one commit each (14, 20, 48, 49). Nothing was pushed. After each one npm test passed. The three that change a screen also passed the quick screen test (101 checks, none failed)."},{"id":"0018","date":"2026-10-04","title":"Confrence and Schedule ranking boost","text":"Schedule strength and conference strength now count a bit more in the national rankings. The build and npm test pass, and the change is committed but not pushed."},{"id":"0017","date":"2026-10-04","title":"Big update 1","text":"All seven changes are in and committed (nothing pushed). The build, npm test and the screen test (186 steps) all pass, and the game-numbers test shows no change to how games play. Two of the fixes are checked with real player and school data; the draft-keep and rankings changes are only partly checked (see the end)."},{"id":"0016","date":"2026-10-04","title":"asking price displayed my recruits","text":"Your players' cards now show an \"Asking\" amount under the NIL line, so you can see what each one wants next to what you pay. I haven't looked at the cards on screen, so I haven't seen how it fits."},{"id":"0015","date":"2026-10-04","title":"phone","text":"The game now works on a 390-pixel-wide phone screen, it's easy to tap, and it can be installed as a home-screen app that works without internet. Every check passed. Nothing has been sent to GitHub or the public website yet."},{"id":"0014","date":"2026-10-03","title":"confrence ranking/top 25","text":"The Top 25 now lives in League news, and League news has a new Conference ranking tab. The game builds, npm test passes, and the click-through screen test passed all 186 steps."},{"id":"0013","date":"2026-10-03","title":"Put the confrence under team names in","text":"On the start page, each school card now shows its conference on a line right under the team name (for example, \"Gulf Conference\" under \"Delta State Tech\"). It's committed and not pushed."},{"id":"0012","date":"2026-10-03","title":"scratch all of this 5 years before","text":"Poor schools now have low expectations and a long grace period, and rich schools have high expectations and a short one. Schools are labeled by budget, not \"Easy\" or \"Hard\". I rebuilt the game, committed the change and did not push."},{"id":"0011","date":"2026-10-03","title":"Reverse the difficuly things and put the","text":"The difficulty is now reversed: rich, strong schools are Easy and poor, weak schools are Brutal. The start page lists schools from richest to poorest. The build, npm test and npm run test:ui all pass. The balance test now flags every tier, because its targets were written for the old direction."},{"id":"0010","date":"2026-10-03","title":"Let player go fix","text":"I couldn't reproduce the break, so I only fixed a wrong message on that screen. If you still see the problem, I need to know exactly what happened."},{"id":"0009","date":"2026-10-03","title":"Tab in league news with the top 50 players","text":"League News now has a \"Top 50\" tab. It's built, tested and committed, and I didn't push."},{"id":"0008","date":"2026-10-03","title":"pictures on my recruit recruit pages are","text":"The recruit picture is fixed: it now shows the whole head and shoulders instead of a zoomed-in crop. I checked this in a screenshot of a recruit's page."},{"id":"0007","date":"2026-10-03","title":"Suggested Edits","text":"That notice only confirms the balance runs ended. I'd already read their results and finished the work, so nothing changes."},{"id":"0006","date":"2026-10-03","title":"start new career option","text":"There's now a Start a new career button on the screen that says the saved career could not be opened."},{"id":"0005","date":"2026-10-03","title":"v13","text":"All 19 requests are done and saved as one commit on this computer. Nothing has been pushed to GitHub."},{"id":"0004","date":"2026-10-03","title":"Task 4: asking prices, long careers, season UI checks","text":"All four parts are done and committed as 29f99a0 (not pushed). The one target not quite met: the Hard tier has 44% of long careers fired against \"about 40%\"."},{"id":"0003","date":"2026-10-03","title":"Task 3: UI click-through test and multi-season money test","text":"I added both tests and ran them. Together they found one real bug, which I fixed. Final results: - npm run test:ui: 167 of 167 steps pass. - npm run test:nil: no CHECK flags. - npm test: all checks pass. - npm run test:realism: every row is still PASS, with the same numbers as before (the fix only touched the screen,…"},{"id":"0002","date":"2026-10-03","title":"Task 2: fix rebounds, blocks and other-team noise","text":"All realism rows now pass, balance is still in range, and npm test passes. The changes are committed (not pushed)."},{"id":"0001","date":"2026-10-03","title":"Task 1: add realism and balance measurement tests","text":"The balance run has started (30 schools, 3 seasons, 5 Chrome workers). I'll get a notification when it finishes."},{"id":"0000","date":"2026-10-03","title":"First look: check the build and plan the fixes (read-only)","text":"The game has been split into src/. The user asked me to confirm it builds and that npm test passes, then list the open issues from CLAUDE.md and propose an order to fix them. No files were to be changed."}];
 
 function DiagPanel({ g: e }) {
@@ -12174,6 +12326,7 @@ function oc() {
     [coachOpen, setCoachOpen] = (0, N.useState)(!1),
     [teamViewId, setTeamViewId] = (0, N.useState)(null),
     [fpl, setFpl] = (0, N.useState)(null),
+    [searchOpen, setSearchOpen] = (0, N.useState)(!1),
     [startAsk, setStartAsk] = (0, N.useState)(!1),
     [startOpts, setStartOpts] = (0, N.useState)({ auto: !0, fin: !0 }),
     [simAsk, setSimAsk] = (0, N.useState)(null),
@@ -12200,6 +12353,15 @@ function oc() {
   }, [e?.jobOffers?.join(","), e?.year]);
   (0, N.useEffect)(() => {
     wo();
+  }, []);
+  (0, N.useEffect)(() => {
+    // search: press / (outside a text box) or Ctrl/Cmd+K
+    const onKey = (ev) => {
+      const tg = ev.target, typing = tg && (/^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName) || tg.isContentEditable);
+      if (((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "k") || (ev.key === "/" && !typing && !ev.ctrlKey && !ev.metaKey && !ev.altKey)) { ev.preventDefault(); setSearchOpen(!0); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
   let sc = async (z) => {
       if (Yn.current) return !1;
@@ -12661,6 +12823,14 @@ function oc() {
                                     : ["ROUND ", Math.min(8, e.round), " / 8"],
                             }),
                         ],
+                      }),
+                      (0, s.jsx)("button", {
+                        className: "icon-btn search-btn",
+                        title: "Search players and schools (press /)",
+                        "aria-label": "Search players and schools",
+                        onClick: () => setSearchOpen(!0),
+                        style: { marginLeft: "auto", marginRight: 10, fontSize: 18 },
+                        children: "\uD83D\uDD0D",
                       }),
                       (0, s.jsxs)("div", {
                         className: "save-status",
@@ -14030,6 +14200,7 @@ function oc() {
           }),
         }),
       e && (0, s.jsx)(LinkLayer, { g: e, openTeam: setTeamViewId, openForeign: setFpl, openOwn: (p) => m(p.id) }),
+      searchOpen && e && (0, s.jsx)(GameSearch, { g: e, onClose: () => setSearchOpen(!1), openTeam: setTeamViewId, openForeign: setFpl, openOwn: (p) => m(p.id), go: cu }),
       teamViewId && e && (0, s.jsx)(TeamView, { g: e, id: teamViewId, onClose: () => setTeamViewId(null), openPlayer: setFpl }),
       fpl && e && (0, s.jsx)(ForeignPlayerCard, { g: e, pl: fpl, onClose: () => setFpl(null), openTeam: (id) => { setFpl(null); setTeamViewId(id); } }),
       coachOpen &&
@@ -23232,6 +23403,62 @@ function FavoritePlayers({ g, run }) {
         : (0, s.jsx)("p", { className: "muted", children: "No favorites yet. Click the star on any player box (your roster, another team's roster, a recruit) to follow him here." }),
     ],
   });
+}
+
+// Search for schools and players (October 2026). Opened from the magnifier button in the top bar, or by pressing / or Ctrl/Cmd+K.
+// Pick a school to open its team view (roster, record, rating), a player on another team to open his player card, one of your own players to open yours,
+// and a recruit or transfer to jump to the Recruiting / Transfer portal page. Reuses the team view and player card from 0112b-TeamPlayerViews.js.
+const gsNorm = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+const GS_CLASS = ["Fr", "So", "Jr", "Sr"];
+function W_searchIndex(g) {
+  const teams = [], players = [], seen = new Set();
+  const addTeam = (t, own) => { if (!t || seen.has(t.id)) return; seen.add(t.id); teams.push({ id: t.id, own, name: t.name, hay: gsNorm(`${t.name} ${t.mascot || ""} ${(g.confNames && g.confNames[t.conf]) || (typeof t.conf === "string" ? t.conf : "")}`), t }); };
+  addTeam(g.school, true);
+  for (const t of g.opponents || []) addTeam(t, t.id === g.school.id);
+  const tname = (id) => { const t = (g.opponents || []).find((x) => x.id === id); return t ? t.name : ""; };
+  for (const t of g.opponents || []) {
+    if (t.id === g.school.id) continue;
+    for (const q of (g.rosters && g.rosters[t.id]) || []) players.push({ kind: "team", key: `t${q.i}`, name: q.n, norm: gsNorm(q.n), hay: gsNorm(`${q.n} ${t.name}`), pos: q.p, cls: GS_CLASS[Math.max(0, Math.min(3, (q.y || 1) - 1))], ovr: q.o, where: t.name, q, teamId: t.id, face: q.f });
+  }
+  for (const p of g.roster || []) players.push({ kind: "own", key: `o${p.id}`, name: p.name, norm: gsNorm(p.name), hay: gsNorm(`${p.name} ${g.school.name}`), pos: p.pos, cls: GS_CLASS[Math.max(0, Math.min(3, (p.year || 1) - 1))], ovr: p.ovr, where: `${g.school.name} (your team)`, p, face: p.faceSeed, portrait: p.portrait });
+  for (const [list, page] of [[g.prospects || [], null], [g.walkons || [], "Walkons"]]) {
+    for (const r of list) {
+      const isXfer = r.origin && (g.opponents || []).some((t) => t.name === r.origin);
+      players.push({ kind: "prospect", key: `p${r.id}`, name: r.name, norm: gsNorm(r.name), hay: gsNorm(`${r.name} ${r.origin || ""} ${r.committedTo || ""}`), pos: r.pos, cls: GS_CLASS[Math.max(0, Math.min(3, (r.year || 1) - 1))], ovr: r.ovr, where: r.committedTo ? `Committed to ${r.committedTo}` : r.status === "Signed" ? "Signed with you" : isXfer ? `Transfer from ${r.origin}` : page === "Walkons" ? "Walk-on pool" : `Recruit${r.stars ? ` · ${r.stars}★` : ""}`, page: page || (isXfer ? "Portal" : "Recruiting"), face: r.faceSeed, portrait: r.portrait });
+    }
+  }
+  return { teams, players, tname };
+}
+function GameSearch({ g, onClose, openTeam, openForeign, openOwn, go }) {
+  const [text, setText] = (0, N.useState)(""), inRef = (0, N.useRef)(null);
+  (0, N.useEffect)(() => { const t = setTimeout(() => inRef.current && inRef.current.focus(), 60); return () => clearTimeout(t); }, []);
+  const idx = (0, N.useMemo)(() => W_searchIndex(g), [g.year, g.phase, g.round, g.pw, g.roster && g.roster.length, g.prospects && g.prospects.length]);
+  const toks = gsNorm(text).split(" ").filter(Boolean);
+  const hit = (hay) => toks.every((k) => hay.includes(k));
+  const schools = toks.length ? idx.teams.filter((t) => hit(t.hay)).sort((a, b) => (gsNorm(b.name).startsWith(toks[0]) ? 1 : 0) - (gsNorm(a.name).startsWith(toks[0]) ? 1 : 0) || (b.t.rating || 0) - (a.t.rating || 0)).slice(0, 8) : [];
+  const allPl = toks.length ? idx.players.filter((p) => hit(p.hay)) : [];
+  const players = allPl.sort((a, b) => (b.norm.startsWith(toks[0]) ? 1 : 0) - (a.norm.startsWith(toks[0]) ? 1 : 0) || (b.ovr || 0) - (a.ovr || 0)).slice(0, 40);
+  const choose = (fn) => () => { onClose(); fn(); };
+  const openSchool = (t) => choose(() => (t.own ? go("Roster") : openTeam(t.id)));
+  const openPlayer = (p) => choose(() => (p.kind === "own" ? openOwn(p.p) : p.kind === "team" ? openForeign({ q: p.q, teamId: p.teamId }) : go(p.page)));
+  const ovrColor = (v) => (v >= 80 ? "#6ee7b7" : v >= 70 ? "#7cc4ff" : "#f6c177");
+  const rowStyle = { display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "left", padding: "8px 10px", borderRadius: 8, background: "transparent", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 6, cursor: "pointer", color: "inherit" };
+  return (0, s.jsxs)(Ao, { title: "Search", onClose, wide: !0, children: [
+    (0, s.jsx)("input", { className: "school-search", ref: inRef, placeholder: "Search players and schools", value: text, onChange: (ev) => setText(ev.target.value), onKeyDown: (ev) => { if (ev.key === "Enter") { const first = schools[0] ? openSchool(schools[0]) : players[0] ? openPlayer(players[0]) : null; if (first) first(); } }, style: { width: "100%", marginBottom: 12 } }),
+    !toks.length && (0, s.jsx)("p", { className: "muted", children: `Type a player or school name. ${idx.teams.length} schools and ${idx.players.length} players are searchable. Press Enter to open the top result.` }),
+    toks.length > 0 && !schools.length && !players.length && (0, s.jsx)("p", { className: "muted", children: "No schools or players match." }),
+    schools.length > 0 && (0, s.jsxs)("div", { children: [
+      (0, s.jsx)("h3", { children: `Schools (${schools.length})` }),
+      schools.map((t) => { let sc = null; try { sc = t.own ? null : hqOppSchool(t.t); } catch (e) {} return (0, s.jsxs)("button", { type: "button", style: rowStyle, onClick: openSchool(t), children: [
+        (0, s.jsx)("span", { style: { width: 34, height: 34, flex: "none" }, children: sc ? (0, s.jsx)(SchoolLogo, { school: sc }) : null }),
+        (0, s.jsxs)("span", { style: { flex: 1 }, children: [(0, s.jsx)("strong", { children: t.name }), t.own ? " (your school)" : "", (0, s.jsx)("br", {}), (0, s.jsx)("small", { className: "muted", children: [(g.confNames && g.confNames[t.t.conf]) || (typeof t.t.conf === "string" ? t.t.conf : ""), t.t.wins != null ? `${t.t.wins}–${t.t.losses}` : "", t.t.rating != null ? `Rating ${t.t.rating}` : ""].filter(Boolean).join(" · ") })] })] }, t.id); }) ] }),
+    players.length > 0 && (0, s.jsxs)("div", { children: [
+      (0, s.jsx)("h3", { children: allPl.length > players.length ? `Players (top ${players.length} of ${allPl.length})` : `Players (${players.length})` }),
+      players.map((p) => (0, s.jsxs)("button", { type: "button", style: rowStyle, onClick: openPlayer(p), children: [
+        (0, s.jsx)("span", { style: { width: 38, height: 38, flex: "none" }, children: (0, s.jsx)(qy, { p: { name: p.name, faceSeed: p.face, portrait: p.portrait || 0 } }) }),
+        (0, s.jsxs)("span", { style: { flex: 1 }, children: [(0, s.jsx)("strong", { children: p.name }), (0, s.jsx)("br", {}), (0, s.jsx)("small", { className: "muted", children: [p.pos, p.cls, p.where].filter(Boolean).join(" · ") })] }),
+        p.ovr != null && (0, s.jsx)("strong", { style: { color: ovrColor(p.ovr) }, children: p.ovr })] }, p.key)) ] })
+  ] });
 }
 
 function Zn({ g: e, run: a }) {
